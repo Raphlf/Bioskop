@@ -6,5 +6,5 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // BASE_URL gunakan tanpa trailing slash, sesuaikan jika perlu
-define('BASE_URL', 'http://localhost/tr_bioskop/public');
+define('BASE_URL', 'http://localhost/Bioskop/public');
 ?>

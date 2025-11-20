@@ -24,23 +24,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register</title>
 
-<?php include __DIR__ . '/../src/templates/header.php'; ?>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #0c1b2a;
+        font-family: Arial, sans-serif;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
 
-<h2>Daftar</h2>
+    .card {
+        background: #112233;
+        padding: 40px;
+        width: 400px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
 
-<form method="POST" class="form-card">
-    <label>Nama</label>
-    <input type="text" name="name" required>
+    h2 {
+        margin-top: 0;
+        margin-bottom: 25px;
+        color: #ffb0b7;
+        font-size: 28px;
+        letter-spacing: 1px;
+    }
 
-    <label>Email</label>
-    <input type="email" name="email" required>
+    label {
+        display: block;
+        text-align: left;
+        margin: 10px 0 5px;
+        font-size: 15px;
+    }
 
-    <label>Password</label>
-    <input type="password" name="password" required>
+    input {
+        width: 100%;
+        padding: 12px;
+        background: #0e1a27;
+        border: none;
+        border-radius: 25px;
+        color: white;
+        outline: none;
+        font-size: 15px;
+        margin-bottom: 12px;
+        padding-left: 15px;
+        border: 1px solid #1d2f45;
+    }
 
-    <label>Ulangi Password</label>
-    <input type="password" name="password2" required>
+    button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        background: linear-gradient(to right, #ff9a9e, #a1e0e5);
+        color: #111;
+        margin-top: 10px;
+    }
+
+    .error {
+        background: rgba(255, 70, 70, 0.85);
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 15px;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    .error li {
+        margin-left: 20px;
+    }
+
+    .link {
+        margin-top: 15px;
+        font-size: 14px;
+    }
+
+    .link a {
+        color: #7ecbff;
+        text-decoration: none;
+    }
+
+    .link a:hover {
+        text-decoration: underline;
+    }
+
+    @media(max-width: 450px) {
+        .card {
+            width: 90%;
+            padding: 30px;
+        }
+    }
+</style>
+
+</head>
+<body>
+
+<div class="card">
+    <h2>Register</h2>
 
     <?php if(!empty($errors)): ?>
         <ul class="error">
@@ -50,7 +144,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </ul>
     <?php endif; ?>
 
-    <button type="submit">Daftar</button>
-</form>
+    <form method="POST">
 
-<?php include __DIR__ . '/../src/templates/footer.php'; ?>
+        <label>Nama</label>
+        <input type="text" name="name" required>
+
+        <label>Email</label>
+        <input type="email" name="email" required>
+
+        <label>Password</label>
+        <input type="password" name="password" required>
+
+        <label>Ulangi Password</label>
+        <input type="password" name="password2" required>
+
+        <button type="submit">Daftar</button>
+
+        <div class="link">
+            Sudah punya akun?
+            <a href="login.php">Login</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
+
