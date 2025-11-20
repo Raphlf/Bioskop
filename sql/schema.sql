@@ -1,5 +1,11 @@
-CREATE DATABASE IF NOT EXISTS bioskop_app CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE bioskop_app;
+CREATE DATABASE IF NOT EXISTS bioskop_db;
+USE bioskop_db;
+
+DROP TABLE IF EXISTS reservation_seats;
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS schedules;
+DROP TABLE IF EXISTS films;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -8,7 +14,7 @@ CREATE TABLE users (
   password VARCHAR(255) NOT NULL,
   role ENUM('admin','user') NOT NULL DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE films (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,7 +24,7 @@ CREATE TABLE films (
   genre VARCHAR(100),
   poster VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE schedules (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -29,19 +35,33 @@ CREATE TABLE schedules (
   seats_total INT DEFAULT 100,
   seats_available INT DEFAULT 100,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (film_id) REFERENCES films(id) ON DELETE CASCADE
-);
+  CONSTRAINT fk_schedules_filmid
+      FOREIGN KEY (film_id) REFERENCES films(id)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 CREATE TABLE reservations (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  user_id INT NOT NULL,
+  user_id INT NULL,
   schedule_id INT NOT NULL,
   seats INT NOT NULL,
   total_price DECIMAL(12,2) NOT NULL,
   status ENUM('pending','confirmed','cancelled') DEFAULT 'pending',
   booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-  FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE
-);
+  CONSTRAINT fk_resv_userid
+      FOREIGN KEY (user_id) REFERENCES users(id)
+      ON DELETE SET NULL,
+  CONSTRAINT fk_resv_scheduleid
+      FOREIGN KEY (schedule_id) REFERENCES schedules(id)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;
 
--- NOTE: To create an admin user, use the register.php or insert manually with a hashed password.
+CREATE TABLE reservation_seats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reservation_id INT NOT NULL,
+  seat_code VARCHAR(10) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_rs_reservation
+      FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;

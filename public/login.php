@@ -31,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Login</title>
 
 <style>
-/* RESET */
 * {
     margin: 0;
     padding: 0;
@@ -49,7 +48,6 @@ body {
     padding: 20px;
 }
 
-/* FORM CENTER */
 .page-center {
     display: flex;
     justify-content: center;
@@ -57,7 +55,6 @@ body {
     width: 100%;
 }
 
-/* CARD */
 .form-card {
     background: #14243c;
     padding: 35px;
@@ -75,7 +72,6 @@ body {
     font-size: 26px;
 }
 
-/* INPUT */
 label {
     display: block;
     margin-bottom: 6px;
@@ -99,7 +95,6 @@ input:focus {
     outline: none;
 }
 
-/* BUTTON */
 button[type="submit"] {
     width: 100%;
     padding: 12px;
@@ -117,7 +112,6 @@ button[type="submit"]:hover {
     transform: translateY(-2px);
 }
 
-/* ERROR */
 .error {
     background: #3b0e0e;
     border-left: 4px solid #ff4e4e;
@@ -127,7 +121,6 @@ button[type="submit"]:hover {
     margin-bottom: 12px;
 }
 
-/* RESPONSIVE */
 @media (max-width: 480px) {
     .form-card {
         padding: 25px;
