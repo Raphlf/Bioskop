@@ -37,18 +37,18 @@ $riwayat_list = $q->fetchAll();
 
 <style>
 body {
-    background: #0c0c0c;
+    background: #0d1b2a;
     color: #eee;
     font-family: "Poppins", sans-serif;
 }
 
 h2, h3 {
-    color: #ff4444;
+    color: #ffb3b3;
     letter-spacing: 1px;
 }
 
 .profil-card {
-    background: #111;
+    background: #14243c;
     padding: 25px;
     border-radius: 16px;
     max-width: 480px;

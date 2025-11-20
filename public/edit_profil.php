@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <style>
     body {
-        background: #0d0d16;
+        background: #0d1b2a;
         font-family: "Poppins", sans-serif;
         color: #e8e8e8;
     }

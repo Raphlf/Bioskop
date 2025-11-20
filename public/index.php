@@ -15,7 +15,7 @@ $jadwal = $stmt->fetchAll();
 
 <style>
 body {
-    background: #0e0a1f;
+    background: #0d1b2a;
     color: #e6d6ff;
     font-family: Arial, sans-serif;
 }
@@ -25,7 +25,7 @@ h2 {
     margin-top: 25px;
     margin-bottom: 25px;
     font-size: 28px;
-    color: #d4b9ff;
+    color: #ffb3b3;
 }
 
 .jadwal-list {
@@ -38,13 +38,13 @@ h2 {
 }
 
 .jadwal-card {
-    background: #1b1133;
+    background: #14243c;
     padding: 18px;
     border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 10px rgba(110, 70, 170, 0.35);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
     transition: 0.25s;
-    border: 1px solid #3b236b;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .jadwal-card:hover {
@@ -68,7 +68,7 @@ h2 {
 
 .jadwal-card p {
     margin: 6px 0;
-    color: #c3abff;
+    color: #eee;
     font-size: 15px;
 }
 
