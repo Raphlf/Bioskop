@@ -1,110 +1,158 @@
-<?php require_once __DIR__ . '/../auth.php'; ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bioskop App</title>
-    <style>
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    .navbar {
-        width: 100%;
-        background: linear-gradient(135deg, #0a1d33, #0f2a47);
-        display:flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 18px 40px;
-        position: sticky;
-        top: 0;
-        z-index: 999;
-        box-sizing: border-box;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
-        font-family: "Poppins", sans-serif;
-        margin: 0;
-    }
-
-.nav-left a {
-    font-size: 24px;
-    font-weight: 600;
-    text-decoration: none;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-
-    transition: 0.3s ease;
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
+require_once __DIR__ . '/../config.php';
 
-.nav-left a:hover {
-    opacity: 0.85;
-    transform: translateY(-1px);
+$currentPage = basename($_SERVER['PHP_SELF']);
+?>
+<style>
+.navbar {
+    background: #0a1d33;
+    padding: 12px 25px;
+    font-family: "Poppins", sans-serif;
 }
-
-.nav-right {
+.navbar .container {
     display: flex;
     align-items: center;
-    gap: 28px;
+    justify-content: space-between;
 }
-
-.nav-right a {
-    text-decoration: none;
-    color: #e6edf5;
-    font-size: 16px;
-    font-weight: 500;
-
-    transition: 0.3s ease;
-}
-
-.nav-right a:hover {
+.nav-brand {
     color: #ffffff;
-    transform: translateY(-2px);
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.nav-menu {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+}
+.nav-menu a {
+    color: #cfd7e3;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+.nav-menu a:hover,
+.nav-menu a.active {
+    background: #132f57;
+    color: #ffffff;
 }
 
-@media (max-width: 700px) {
-    .navbar {
+.nav-user {
+    color: #86a3c6;
+    font-size: 13px;
+    margin-right: 10px;
+}
+
+/* Responsive */
+.menu-toggle {
+    display: none;
+    font-size: 22px;
+    color: white;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .nav-menu {
+        display: none;
+        position: absolute;
+        background: #0a1d33;
+        top: 60px;
+        right: 0;
+        width: 100%;
         flex-direction: column;
-        padding: 16px 22px;
-        gap: 12px;
-        text-align: center;
+        padding: 15px 0;
     }
 
-    .nav-right {
-        gap: 16px;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .nav-left a {
-        font-size: 22px;
-    }
-
-    .nav-right a {
-        font-size: 15px;
+    .nav-menu.show {
+        display: flex;
     }
 }
-
 </style>
-</head>
-<body>
 
 <nav class="navbar">
-    <div class="nav-left">
-        <a href="<?= BASE_URL ?>/index.php">Bioskop App</a>
-    </div>
+    <div class="container">
+        <a href="<?= BASE_URL ?>/index.php" class="nav-brand">
+            🎬 Bioskop App
+        </a>
 
-    <div class="nav-right">
-        <?php if(is_logged_in()): ?>
-            <a href="<?= BASE_URL ?>/profil.php">Profil</a>
-            <?php if($_SESSION['user']['role'] === 'admin'): ?>
-                <a href="<?= BASE_URL ?>/admin/dashboard.php">Dashboard Admin</a>
+        <div class="menu-toggle" id="menuToggle">
+            ☰
+        </div>
+
+        <div class="nav-menu" id="navMenu">
+
+            <a href="<?= BASE_URL ?>/index.php"
+               class="<?= $currentPage == 'index.php' ? 'active' : '' ?>">
+               Home
+            </a>
+
+            <a href="<?= BASE_URL ?>/film.php"
+               class="<?= $currentPage == 'film.php' ? 'active' : '' ?>">
+               Film
+            </a>
+
+            <a href="<?= BASE_URL ?>/reservasi.php"
+               class="<?= $currentPage == 'reservasi.php' ? 'active' : '' ?>">
+               Reservasi
+            </a>
+
+            <?php if (isset($_SESSION['user'])): ?>
+
+                <a href="<?= BASE_URL ?>/profil.php"
+                   class="<?= $currentPage == 'profil.php' ? 'active' : '' ?>">
+                   Profil
+                </a>
+
+                <?php if ($_SESSION['user']['role'] === 'admin'): ?>
+                    <a href="<?= BASE_URL ?>/admin/index.php"
+                       class="<?= str_contains($_SERVER['PHP_SELF'], 'admin') ? 'active' : '' ?>">
+                       Admin
+                    </a>
+                <?php endif; ?>
+
+                <span class="nav-user">
+                    👤 <?= $_SESSION['user']['name']; ?>
+                </span>
+
+                <a href="<?= BASE_URL ?>/logout.php" id="logoutBtn" onclick="return confirmLogout()">
+                    Logout
+                </a>
+
+                <script>
+                    function confirmLogout() {
+                       const confirmation = confirm("Apakah Anda yakin ingin keluar (Logout)?");
+                        return confirmation;
+                    }
+                </script>
+
+            <?php else: ?>
+
+                <a href="<?= BASE_URL ?>/login.php"
+                   class="<?= $currentPage == 'login.php' ? 'active' : '' ?>">
+                   Login
+                </a>
+
+                <a href="<?= BASE_URL ?>/register.php"
+                   class="<?= $currentPage == 'register.php' ? 'active' : '' ?>">
+                   Daftar
+                </a>
+
             <?php endif; ?>
-            <a href="<?= BASE_URL ?>/logout.php">Logout</a>
-        <?php else: ?>
-            <a href="<?= BASE_URL ?>/login.php">Login</a>
-        <?php endif; ?>
+        </div>
     </div>
 </nav>
 
-<div class="container">
+<script>
+document.getElementById("menuToggle").addEventListener("click", function() {
+    document.getElementById("navMenu").classList.toggle("show");
+});
+</script>
