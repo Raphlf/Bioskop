@@ -7,6 +7,11 @@ require_once __DIR__ . '/../config.php';
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
+body{
+    margin: 0;
+    padding: 0;
+}
+
 .navbar {
     background: #0a1d33;
     padding: 12px 25px;
