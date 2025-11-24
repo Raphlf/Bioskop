@@ -6,30 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bioskop App</title>
     <style>
-/* =========================
-   NAVBAR HIGH-CLASS
-   ========================= */
-.navbar {
-    width: 100%;
-    background: linear-gradient(135deg, #0a1d33, #0f2a47);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .navbar {
+        width: 100%;
+        background: linear-gradient(135deg, #0a1d33, #0f2a47);
+        display:flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 40px;
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        box-sizing: border-box;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+    }
 
-    padding: 18px 40px;
-
-    position: sticky;
-    top: 0;
-    z-index: 999;
-    box-sizing: border-box;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
-
-    font-family: "Poppins", sans-serif;
-}
-
-/* LEFT – LOGO / BRAND */
 .nav-left a {
     font-size: 24px;
     font-weight: 600;
@@ -45,7 +42,6 @@
     transform: translateY(-1px);
 }
 
-/* RIGHT – MENU LINKS */
 .nav-right {
     display: flex;
     align-items: center;
@@ -66,9 +62,6 @@
     transform: translateY(-2px);
 }
 
-/* =========================
-   MOBILE RESPONSIVE
-   ========================= */
 @media (max-width: 700px) {
     .navbar {
         flex-direction: column;

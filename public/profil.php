@@ -45,6 +45,7 @@ body {
 h2, h3 {
     color: #ffb3b3;
     letter-spacing: 1px;
+    margin-left: 40px;
 }
 
 .profil-card {
@@ -154,7 +155,7 @@ h2, h3 {
     <div class="profil-header">
         <div class="profil-foto">👤</div>
         <div>
-            <h3><?= esc($user['name']) ?></h3>
+            <h3 style="margin: 0;"><?= esc($user['name']) ?></h3>
             <p><?= esc($user['email']) ?></p>
             <span class="badge"><?= strtoupper($user['role']) ?></span>
         </div>

@@ -102,7 +102,7 @@ button[type="submit"] {
     border: none;
     border-radius: 30px;
     font-size: 17px;
-    font-weight: 600;
+    font-weight: bold;
     cursor: pointer;
     color: #000;
 }

@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .card {
-        background: #112233;
+        background: #14243c;
         padding: 40px;
         width: 400px;
         border-radius: 20px;
@@ -69,9 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     input {
-        width: 100%;
+        width: 93%;
         padding: 12px;
-        background: #0e1a27;
+        background: #0f1a2b;
         border: none;
         border-radius: 25px;
         color: white;
