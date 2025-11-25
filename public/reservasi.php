@@ -10,27 +10,23 @@ $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $schedule_id = intval($_POST['schedule_id']);
-    $seats = intval($_POST['seats']);
-
-    if ($seats <= 0) $errors[] = 'Jumlah kursi tidak valid';
 
     $stmt = $pdo->prepare("SELECT * FROM schedules WHERE id = ? LIMIT 1");
     $stmt->execute([$schedule_id]);
     $sch = $stmt->fetch();
 
-    if (!$sch) $errors[] = 'Jadwal tidak ditemukan';
-    if ($seats > $sch['seats_available']) $errors[] = 'Kursi tidak cukup tersedia';
+    if (!$sch) {
+        $errors[] = 'Jadwal tidak ditemukan';
+    } elseif ($sch['seats_available'] < 1) {
+        $errors[] = 'Maaf, kursi tidak tersedia untuk jadwal ini.';
+    }
 
     if (empty($errors)) {
-        $total = $seats * $sch['price'];
+        $stmt = $pdo->prepare("INSERT INTO reservations (user_id, schedule_id, seats, total_price, status) VALUES (?, ?, 0, 0, 'pending')");
+        $stmt->execute([$user['id'], $schedule_id]);
+        $reservation_id = $pdo->lastInsertId();
 
-        $stmt = $pdo->prepare("INSERT INTO reservations (user_id, schedule_id, seats, total_price) VALUES (?,?,?,?)");
-        $stmt->execute([$user['id'], $schedule_id, $seats, $total]);
-
-        $stmt = $pdo->prepare("UPDATE schedules SET seats_available = seats_available - ? WHERE id = ?");
-        $stmt->execute([$seats, $schedule_id]);
-
-        header('Location: reservasi.php');
+        header('Location: choose_seat.php?reservation_id=' . $reservation_id);
         exit;
     }
 }
@@ -39,9 +35,11 @@ $stmt = $pdo->prepare("SELECT r.*, s.show_date, s.show_time, f.title, f.poster
     FROM reservations r
     JOIN schedules s ON r.schedule_id = s.id
     JOIN films f ON s.film_id = f.id
-    WHERE r.user_id = ? ORDER BY r.booking_time DESC");
+    WHERE r.user_id = ?
+    ORDER BY r.booking_time DESC");
 $stmt->execute([$user['id']]);
 $reservations = $stmt->fetchAll();
+
 $jadwals = $pdo->query("SELECT s.*, f.title FROM schedules s JOIN films f ON s.film_id = f.id ORDER BY s.show_date, s.show_time")->fetchAll();
 ?>
 
@@ -49,136 +47,77 @@ $jadwals = $pdo->query("SELECT s.*, f.title FROM schedules s JOIN films f ON s.f
 
 <style>
 body {
-    background: #0c0c0c;
-    color: #eee;
-    font-family: "Poppins", sans-serif;
+    background: #3b0d0d;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #f1d6d0;
+    padding: 30px 20px;
 }
-
-h2, h3 {
-    color: #ff4444;
-    letter-spacing: 1px;
-}
+h2, h3 { color: #ffdddd; text-align: center; }
 
 .form-card {
-    background: #111;
-    padding: 25px;
-    border-radius: 16px;
-    max-width: 480px;
+    background: #2a1a1a;
+    padding: 30px;
+    border-radius: 12px;
+    width: 480px;
     margin: 20px auto;
-    box-shadow: 0 0 20px rgba(255, 40, 40, .25);
-    border: 1px solid #222;
+    box-shadow: 0 0 20px #000;
 }
-
-.form-card label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 14px;
-    color: #eee;
-}
-
-.form-card input,
-.form-card select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid #333;
-    background: #111;
-    color: #eee;
-}
-
-.form-card button {
+.form-card label { color: #d4af97; font-weight: bold; }
+.form-card select, .form-card button {
     width: 100%;
     padding: 12px;
-    background: #ff4444;
+    margin-top: 10px;
+}
+.form-card button {
+    background: #800000;
+    color: white;
     border: none;
     border-radius: 10px;
-    color: white;
     font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.form-card button:hover {
-    background: #cc0000;
-}
-
-.error {
-    color: #ff8888;
-    margin-bottom: 10px;
 }
 
 .table {
     width: 95%;
     margin: auto;
-    border-collapse: collapse;  
-    background: #111;
-    border-radius: 12px;
-    overflow: hidden;            
-    box-shadow: 0 0 15px rgba(255, 40, 40, .2);
-    border: none !important;     
-    outline: none !important;
+    border-collapse: collapse;
+    color: #f1d6d0;
+    background: #2a1a1a;
 }
-
 .table th {
-    background: #ff4444;
+    background: #800000;
     padding: 12px;
-    font-size: 14px;
-    border: none;               
-    color: #fff;
-    text-align: center;
 }
-
 .table td {
     padding: 10px;
-    text-align: center;
-    border: none;                
-    border-bottom: 1px solid #222; 
-    color: #ddd;
-}
-
-.table tr:last-child td {
-    border-bottom: none;         
-}
-
-.table tr:hover {
-    background: rgba(255, 50, 50, 0.1);
-}
-
-.table img {
-    border-radius: 6px;
-    box-shadow: 0 0 5px rgba(255, 50, 50, .5);
+    border-bottom: 1px solid #5e3b1a;
 }
 </style>
 
-<h2>Reservasi</h2>
+<h2>Reservasi Tiket Bioskop</h2>
 
-<form method="POST" class="form-card">
-    <label>Pilih Jadwal</label>
-    <select name="schedule_id" required>
-        <?php foreach($jadwals as $j): ?>
-            <option value="<?= $j['id'] ?>"><?= esc($j['title']) ?> | <?= esc($j['show_date']) ?> <?= esc($j['show_time']) ?> | Sisa: <?= $j['seats_available'] ?></option>
-        <?php endforeach; ?>
-    </select>
+<?php if (!empty($errors)): ?>
+    <div style="color:red; text-align:center;"><?= implode('<br>', $errors) ?></div>
+<?php endif; ?>
 
-    <label>Jumlah Kursi</label>
-    <input type="number" name="seats" min="1" required>
-
-    <?php if(!empty($errors)): ?>
-        <ul class="error">
-            <?php foreach($errors as $e): ?>
-                <li><?= esc($e) ?></li>
+<div class="form-card">
+    <form method="POST">
+        <label>Pilih Jadwal Film</label>
+        <select name="schedule_id" required>
+            <option value="">-- Pilih Jadwal --</option>
+            <?php foreach ($jadwals as $j): ?>
+                <option value="<?= $j['id'] ?>">
+                    <?= $j['title'] ?> - <?= $j['show_date'] ?> <?= substr($j['show_time'],0,5) ?> - Rp<?= number_format($j['price']) ?>
+                </option>
             <?php endforeach; ?>
-        </ul>
-    <?php endif; ?>
+        </select>
+        <button type="submit">Pesan Tiket</button>
+    </form>
+</div>
 
-    <button type="submit">Pesan</button>
-</form>
+<h3>Daftar Reservasi</h3>
 
-<h3>Daftar Reservasiku</h3>
-
-<?php if(count($reservations) == 0): ?>
-    <p style="text-align:center;">Belum ada transaksi.</p>
+<?php if (count($reservations) == 0): ?>
+    <p style="text-align:center;">Belum ada reservasi.</p>
 <?php else: ?>
 <table class="table">
     <tr>
@@ -187,27 +126,21 @@ h2, h3 {
         <th>Tanggal</th>
         <th>Jam</th>
         <th>Kursi</th>
-        <th>Total Harga</th>
+        <th>Total</th>
         <th>Status</th>
-        <th>Waktu Pesan</th>
+        <th>Waktu</th>
     </tr>
-    <?php foreach($reservations as $r): ?>
+    <?php foreach ($reservations as $r): ?>
     <tr>
-        <td>
-            <?php if($r['poster']): ?>
-            <img src="<?= BASE_URL . '/' . esc($r['poster']) ?>" style="width:60px; height:90px; object-fit:cover;">
-            <?php endif; ?>
-        </td>
-        <td><?= esc($r['title']) ?></td>
-        <td><?= esc($r['show_date']) ?></td>
-        <td><?= esc($r['show_time']) ?></td>
-        <td><?= esc($r['seats']) ?></td>
-        <td>Rp<?= number_format($r['total_price'],0,',','.') ?></td>
-        <td><?= esc($r['status']) ?></td>
-        <td><?= esc($r['booking_time']) ?></td>
+        <td><img src="<?= BASE_URL . '/' . $r['poster'] ?>" width="60"></td>
+        <td><?= $r['title'] ?></td>
+        <td><?= $r['show_date'] ?></td>
+        <td><?= $r['show_time'] ?></td>
+        <td><?= $r['seats'] ?></td>
+        <td>Rp<?= number_format($r['total_price']) ?></td>
+        <td><?= $r['status'] ?></td>
+        <td><?= $r['booking_time'] ?></td>
     </tr>
     <?php endforeach; ?>
 </table>
 <?php endif; ?>
-
-<?php include __DIR__ . '/../src/templates/footer.php'; ?>

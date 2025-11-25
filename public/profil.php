@@ -14,8 +14,7 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
 $resv = $pdo->prepare("
-    SELECT COUNT(*) AS total_reservasi, 
-           COALESCE(SUM(seats),0) AS total_kursi
+    SELECT COUNT(*) AS total_reservasi
     FROM reservations 
     WHERE user_id = ?");
 $resv->execute([$user_id]);
@@ -37,97 +36,103 @@ $riwayat_list = $q->fetchAll();
 
 <style>
 body {
-    background: #0d1b2a;
-    color: #eee;
-    font-family: "Poppins", sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 30px 20px;
 }
 
 h2, h3 {
-    color: #ffb3b3;
+    color: #33aa77;
     letter-spacing: 1px;
-    margin-left: 40px;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 .profil-card {
-    background: #14243c;
-    padding: 25px;
-    border-radius: 16px;
-    max-width: 480px;
+    background: #1f1f1f;
+    padding: 30px;
+    border-radius: 14px;
+    max-width: 520px;
     margin: 20px auto;
-    box-shadow: 0 0 20px rgba(255, 40, 40, .25);
-    border: 1px solid #222;
+    box-shadow: 0 0 30px rgba(50, 180, 150, 0.5);
+    border: none;
 }
 
 .profil-header {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px;
 }
 
 .profil-foto {
     width: 90px;
     height: 90px;
-    background: #ff4444;
+    background: #33aa77;
     color: white;
-    font-size: 45px;
+    font-size: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 15px rgba(255, 50, 50, .6);
+    box-shadow: 0 0 18px #33aa77;
 }
 
 .badge {
-    background: #ff4444;
+    background: #33aa77;
     color: white;
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
     display: inline-block;
 }
 
 .btn {
     display: inline-block;
-    background: #ff4444;
+    background: #33aa77;
     color: white !important;
-    padding: 10px 18px;
-    margin-top: 15px;
-    border-radius: 10px;
-    font-weight: bold;
-    transition: 0.25s;
+    padding: 12px 22px;
+    margin-top: 18px;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: background-color 0.25s ease;
+    box-shadow: 0 0 12px #33aa77;
+    cursor: pointer;
 }
 
 .btn:hover {
-    background: #cc0000;
+    background: #2b8c63;
+    box-shadow: 0 0 18px #2b8c63;
 }
 
 .table {
     width: 95%;
     margin: auto;
     border-collapse: collapse;  
-    background: #111;
-    border-radius: 12px;
+    background: #1f1f1f;
+    border-radius: 14px;
     overflow: hidden;            
-    box-shadow: 0 0 15px rgba(255, 40, 40, .2);
+    box-shadow: 0 0 25px rgba(50, 180, 150, 0.4);
     border: none !important;     
     outline: none !important;
 }
 
 .table th {
-    background: #ff4444;
-    padding: 12px;
-    font-size: 14px;
+    background: #33aa77;
+    padding: 16px;
+    font-size: 15px;
     border: none;               
-    color: #fff;
+    color: #e0e0e0;
     text-align: center;
 }
 
 .table td {
-    padding: 10px;
+    padding: 13px;
     text-align: center;
     border: none;                
-    border-bottom: 1px solid #222; 
-    color: #ddd;
+    border-bottom: 1px solid #264d39; 
+    color: #cce9d6;
 }
 
 .table tr:last-child td {
@@ -135,17 +140,17 @@ h2, h3 {
 }
 
 .table tr:hover {
-    background: rgba(255, 50, 50, 0.1);
+    background: rgba(50, 180, 150, 0.15);
 }
 
 .table img {
-    border-radius: 6px;
-    box-shadow: 0 0 5px rgba(255, 50, 50, .5);
+    border-radius: 9px;
+    box-shadow: 0 0 8px rgba(50, 180, 150, 0.7);
 }
 
 .table td:nth-child(7) {
     font-weight: bold;
-    color: #ff4444;
+    color: #33aa77;
 }
 </style>
 
@@ -166,7 +171,15 @@ h2, h3 {
     <p><strong>ID Pengguna:</strong> <?= $user['id'] ?></p>
     <p><strong>Tanggal Buat Akun:</strong> <?= $user['created_at'] ?></p>
     <p><strong>Total Reservasi:</strong> <?= $stat['total_reservasi'] ?></p>
-    <p><strong>Total Kursi Dipesan:</strong> <?= $stat['total_kursi'] ?></p>
+    <p><strong>Total Kursi Dipesan:</strong> 
+        <?php 
+            // Calculate total seats ordered by user from reservation_seat table
+            $total_kursi_stmt = $pdo->prepare("SELECT COUNT(*) AS total_kursi FROM reservation_seats rs JOIN reservations r ON rs.reservation_id = r.id WHERE r.user_id = ?");
+            $total_kursi_stmt->execute([$user_id]);
+            $total_kursi_row = $total_kursi_stmt->fetch();
+            echo $total_kursi_row ? $total_kursi_row['total_kursi'] : 0;
+        ?>
+    </p>
 
     <a href="edit_profil.php" class="btn">Edit Profil</a>
 </div>
