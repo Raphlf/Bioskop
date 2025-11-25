@@ -50,7 +50,6 @@ body {
     background: #3b0d0d;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #f1d6d0;
-    padding: 30px 20px;
 }
 h2, h3 { color: #ffdddd; text-align: center; }
 

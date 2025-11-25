@@ -40,7 +40,6 @@ body {
     color: #e0e0e0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
-    padding: 30px 20px;
 }
 
 h2, h3 {
