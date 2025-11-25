@@ -110,20 +110,19 @@ body{
                class="<?= $currentPage == 'reservasi.php' ? 'active' : '' ?>">
                Reservasi
             </a>
-
+            <?php if ($_SESSION['user']['role'] === 'admin'): ?>
+                    <a href="<?= BASE_URL ?>/admin/index.php"
+                       class="<?= str_contains($_SERVER['PHP_SELF'], 'admin') ? 'active' : '' ?>">
+                       Admin
+                    </a>
+            <?php endif; ?>
+            
             <?php if (isset($_SESSION['user'])): ?>
 
                 <a href="<?= BASE_URL ?>/profil.php"
                    class="<?= $currentPage == 'profil.php' ? 'active' : '' ?>">
                    👤 <?= $_SESSION['user']['name']; ?>
                 </a>
-
-                <?php if ($_SESSION['user']['role'] === 'admin'): ?>
-                    <a href="<?= BASE_URL ?>/admin/index.php"
-                       class="<?= str_contains($_SERVER['PHP_SELF'], 'admin') ? 'active' : '' ?>">
-                       Admin
-                    </a>
-                <?php endif; ?>
 
                 <a href="<?= BASE_URL ?>/logout.php" id="logoutBtn" onclick="return confirmLogout()">
                     Logout
