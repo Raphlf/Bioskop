@@ -14,17 +14,18 @@ body{
 
 .navbar {
     background: #0a1d33;
-    padding: 12px 25px;
+    padding: 20px 15px;
     font-family: "Poppins", sans-serif;
+    height: 40px;
 }
 .navbar .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
+} 
 .nav-brand {
     color: #ffffff;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
     text-decoration: none;
 }
@@ -36,7 +37,7 @@ body{
 .nav-menu a {
     color: #ffffff;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 16px;
     padding: 6px 10px;
     border-radius: 6px;
     transition: 0.2s;
@@ -45,7 +46,7 @@ body{
 .nav-menu a:hover,
 .nav-menu a.active {
     background: #132f57;
-    color: #ffffff;
+    color: #86a3c6;
 }
 
 .nav-user {
@@ -111,12 +112,12 @@ body{
                Reservasi
             </a>
             <?php if ($_SESSION['user']['role'] === 'admin'): ?>
-                    <a href="<?= BASE_URL ?>/admin/index.php"
+                    <a href="<?= BASE_URL ?>/admin/dashboard.php"
                        class="<?= str_contains($_SERVER['PHP_SELF'], 'admin') ? 'active' : '' ?>">
                        Admin
                     </a>
             <?php endif; ?>
-            
+
             <?php if (isset($_SESSION['user'])): ?>
 
                 <a href="<?= BASE_URL ?>/profil.php"
