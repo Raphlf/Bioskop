@@ -34,12 +34,13 @@ body{
     align-items: center;
 }
 .nav-menu a {
-    color: #cfd7e3;
+    color: #ffffff;
     text-decoration: none;
     font-size: 14px;
     padding: 6px 10px;
     border-radius: 6px;
     transition: 0.2s;
+    font-weight: 600;
 }
 .nav-menu a:hover,
 .nav-menu a.active {
@@ -86,7 +87,7 @@ body{
 <nav class="navbar">
     <div class="container">
         <a href="<?= BASE_URL ?>/index.php" class="nav-brand">
-            🎬 Bioskop App
+            🎬 My Cinema
         </a>
 
         <div class="menu-toggle" id="menuToggle">
@@ -114,7 +115,7 @@ body{
 
                 <a href="<?= BASE_URL ?>/profil.php"
                    class="<?= $currentPage == 'profil.php' ? 'active' : '' ?>">
-                   Profil
+                   👤 <?= $_SESSION['user']['name']; ?>
                 </a>
 
                 <?php if ($_SESSION['user']['role'] === 'admin'): ?>
@@ -123,10 +124,6 @@ body{
                        Admin
                     </a>
                 <?php endif; ?>
-
-                <span class="nav-user">
-                    👤 <?= $_SESSION['user']['name']; ?>
-                </span>
 
                 <a href="<?= BASE_URL ?>/logout.php" id="logoutBtn" onclick="return confirmLogout()">
                     Logout
@@ -145,12 +142,6 @@ body{
                    class="<?= $currentPage == 'login.php' ? 'active' : '' ?>">
                    Login
                 </a>
-
-                <a href="<?= BASE_URL ?>/register.php"
-                   class="<?= $currentPage == 'register.php' ? 'active' : '' ?>">
-                   Daftar
-                </a>
-
             <?php endif; ?>
         </div>
     </div>
