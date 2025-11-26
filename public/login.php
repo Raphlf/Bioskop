@@ -14,13 +14,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($pass, $user['password'])) {
-        unset($user['password']);
-        $_SESSION['user'] = $user;
-        header("Location: " . BASE_URL . "/index.php");
+    unset($user['password']);
+    $_SESSION['user'] = $user;
+
+    // === REDIRECT KHUSUS ADMIN ===
+    if ($user['role'] === 'admin') {
+        header("Location: " . BASE_URL . "/admin/dashboard.php");
         exit;
-    } else {
-        $error = "Email atau password salah!";
     }
+
+    // === USER BIASA KE BERANDA ===
+    header("Location: " . BASE_URL . "/index.php");
+    exit;
+    }
+
 }
 ?>
 
