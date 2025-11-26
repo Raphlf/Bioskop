@@ -36,7 +36,7 @@ body {
     margin: 0 auto 80px;
 }
 
-/* ===================== FILM CARD ===================== */
+/* ===================== CARD FIX CLICK ===================== */
 .film-card {
     background: #ffffff;
     border-radius: 18px;
@@ -44,10 +44,19 @@ body {
     text-align: center;
     box-shadow: 0 10px 24px rgba(0,0,0,0.08);
     transition: transform .2s ease, box-shadow .2s ease;
+    position: relative;
 }
 .film-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+}
+
+.film-card a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
 }
 
 /* Poster */
@@ -62,7 +71,7 @@ body {
     padding: 14px 16px 20px;
 }
 .film-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #111827;
     margin-bottom: 6px;
@@ -77,12 +86,12 @@ body {
 .film-badge {
     background: #33aa77;
     color: white;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     display: inline-block;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 </style>
 
@@ -92,21 +101,23 @@ body {
 
 <?php foreach($films as $f): ?>
     <div class="film-card">
+        <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
 
-        <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>"
-             alt="<?= esc($f['title']) ?>"
-             class="poster">
+            <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
+                 alt="<?= esc($f['title']) ?>" 
+                 class="poster">
 
-        <div class="film-body">
-            <span class="film-badge">Now Showing</span>
+            <div class="film-body">
 
-            <div class="film-title"><?= esc($f['title']) ?></div>
+                <span class="film-badge">Get Ticket</span>
 
-            <div class="film-sub">
-                <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                <div class="film-title"><?= esc($f['title']) ?></div>
+
+                <div class="film-sub">
+                    <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                </div>
             </div>
-
-        </div>
+        </a>
     </div>
 <?php endforeach; ?>
 

@@ -6,44 +6,51 @@ require_once __DIR__ . '/../src/helpers.php';
 require_login();
 $user = $_SESSION['user'];
 
-$stmt = $pdo->prepare("SELECT r.*, s.show_date, s.show_time, f.title, f.poster
-    FROM reservations r
-    JOIN schedules s ON r.schedule_id = s.id
+// ===============================
+//  Ambil data tiket user (BOOKINGS BARU)
+// ===============================
+$stmt = $pdo->prepare("
+    SELECT b.*, 
+           s.show_time,
+           s.price,
+           f.title, 
+           f.poster,
+           st.name AS studio_name
+    FROM bookings b
+    JOIN schedules s ON b.schedule_id = s.id
     JOIN films f ON s.film_id = f.id
-    WHERE r.user_id = ?
-    ORDER BY r.booking_time DESC");
+    JOIN studios st ON s.studio_id = st.id
+    WHERE b.user_id = ?
+    ORDER BY b.created_at DESC
+");
 $stmt->execute([$user['id']]);
-$reservations = $stmt->fetchAll();
+$bookings = $stmt->fetchAll();
+
+include __DIR__ . '/../src/templates/header.php';
 ?>
 
-<?php include __DIR__ . '/../src/templates/header.php'; ?>
-
 <style>
-/* ============ FIX FOOTER NGANGKAT ============ */
+/* ====== Global + Footer fix ====== */
 html, body {
     height: 100%;
     margin: 0;
 }
-
 .page-wrapper {
-    min-height: calc(100vh - 80px); /* navbar + footer fix */
+    min-height: calc(100vh - 80px);
     display: flex;
     flex-direction: column;
 }
-
 .content-area {
     flex: 1;
-    padding-bottom: 40px;
 }
 
-/* ============ THEME PUTIH EMAS ============ */
+/* ====== Theme ====== */
 body {
     background: #fafafa;
+    font-family: system-ui, "Segoe UI", sans-serif;
     color: #1f2937;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
-/* Title */
 .page-title {
     text-align: center;
     margin: 110px 0 26px;
@@ -52,7 +59,7 @@ body {
     color: #b8962f;
 }
 
-/* List container */
+/* ====== Ticket List ====== */
 .ticket-list {
     max-width: 820px;
     margin: 0 auto 80px;
@@ -61,33 +68,29 @@ body {
     gap: 22px;
 }
 
-/* ============ TICKET CARD ============ */
 .ticket-card {
-    background: #ffffff;
+    background: #fff;
     border-radius: 20px;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.09);
     overflow: hidden;
     border: 1px solid #e5e7eb;
 }
 
-/* Top */
+/* TOP */
 .ticket-top {
     display: flex;
     justify-content: space-between;
     padding: 18px 22px;
     border-bottom: 2px dashed #d4af37;
 }
-
 .ticket-info {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-
 .ticket-title {
     font-size: 20px;
     font-weight: 700;
-    color: #1f2937;
 }
 .ticket-meta {
     font-size: 14px;
@@ -100,24 +103,23 @@ body {
     border-radius: 8px;
 }
 
-/* Bottom */
+/* BOTTOM */
 .ticket-bottom {
     display: flex;
     justify-content: space-between;
     padding: 18px 22px;
     font-size: 15px;
 }
-
 .tb-label {
     font-size: 12px;
     color: #6b7280;
 }
 .tb-value {
     font-weight: 700;
-    color: #b8962f; /* GOLD */
+    color: #b8962f;
 }
 
-/* Empty text */
+/* Empty */
 .empty-text {
     margin-top: 70px;
     text-align: center;
@@ -132,32 +134,47 @@ body {
 
 <h2 class="page-title">My Ticket</h2>
 
-<?php if (count($reservations) === 0): ?>
+<?php if (count($bookings) === 0): ?>
     <p class="empty-text">Belum ada tiket yang kamu beli.</p>
 <?php else: ?>
 
 <div class="ticket-list">
 
-<?php foreach ($reservations as $r): ?>
+<?php foreach ($bookings as $b): ?>
 
     <?php
-        $seatText = $r["seats"];
-        $seatCount = ($seatText && $seatText !== "0")
-            ? count(array_filter(array_map("trim", explode(",", $seatText))))
-            : 0;
+        // ambil kursi dari booking_seats
+        $seatStmt = $pdo->prepare("
+            SELECT seat_number 
+            FROM booking_seats bs
+            JOIN seats s ON s.id = bs.seat_id
+            WHERE bs.booking_id = ?
+        ");
+        $seatStmt->execute([$b['id']]);
+        $seatList = $seatStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $seatText = implode(", ", $seatList);
+        $seatCount = count($seatList);
     ?>
 
     <div class="ticket-card">
 
         <div class="ticket-top">
             <div class="ticket-info">
-                <div class="ticket-title"><?= esc($r['title']) ?></div>
-                <div class="ticket-meta"><?= esc($r['show_date']) ?> – <?= substr($r['show_time'],0,5) ?></div>
-                <div class="ticket-meta">Status: <?= esc($r['status']) ?></div>
+                <div class="ticket-title"><?= esc($b['title']) ?></div>
+
+                <div class="ticket-meta">
+                    <?= date("d M Y", strtotime($b['show_time'])) ?>
+                    – <?= date("H:i", strtotime($b['show_time'])) ?>
+                </div>
+
+                <div class="ticket-meta">
+                    Studio: <?= esc($b['studio_name']) ?>
+                </div>
             </div>
 
             <div class="ticket-poster">
-                <img src="<?= BASE_URL . '/' . esc($r['poster']) ?>">
+                <img src="<?= BASE_URL . '/' . esc($b['poster']) ?>">
             </div>
         </div>
 
@@ -169,12 +186,12 @@ body {
 
             <div>
                 <div class="tb-label">Kursi</div>
-                <div class="tb-value"><?= esc($seatText) ?></div>
+                <div class="tb-value"><?= $seatCount > 0 ? $seatText : "-" ?></div>
             </div>
 
             <div>
                 <div class="tb-label">Kode</div>
-                <div class="tb-value">#<?= $r['id'] ?></div>
+                <div class="tb-value">#<?= $b['id'] ?></div>
             </div>
         </div>
 
@@ -186,7 +203,7 @@ body {
 
 <?php endif; ?>
 
-</div> <!-- end content -->
-</div> <!-- end wrapper -->
+</div>
+</div>
 
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
