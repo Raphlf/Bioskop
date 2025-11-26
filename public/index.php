@@ -4,10 +4,10 @@ require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 
-$stmt = $pdo->query("SELECT s.*, f.title, f.poster 
-                     FROM schedules s 
-                     JOIN films f ON s.film_id = f.id 
-                     ORDER BY s.show_date, s.show_time");
+$stmt = $pdo->query("SELECT s.*, f.title, f.poster
+                     FROM schedules s
+                     JOIN films f ON s.film_id = f.id
+                     ORDER BY s.show_time ASC");
 $jadwal = $stmt->fetchAll();
 ?>
 
