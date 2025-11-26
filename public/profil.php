@@ -35,122 +35,132 @@ $riwayat_list = $q->fetchAll();
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
 
 <style>
+/* ==================== Profile Light Mode ==================== */
 body {
-    background: #121212;
-    color: #e0e0e0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f8;
+    color: #1f2937;
+    font-family: 'Poppins', sans-serif;
     margin: 0;
+    padding-top: 110px;   /* FIX ketutupan navbar */
 }
 
 h2, h3 {
-    color: #33aa77;
-    letter-spacing: 1px;
+    color: #0f172a;
+    letter-spacing: 0.5px;
     text-align: center;
     margin-bottom: 20px;
 }
 
+/* CARD PROFIL */
 .profil-card {
-    background: #1f1f1f;
-    padding: 30px;
-    border-radius: 14px;
-    max-width: 520px;
-    margin: 20px auto;
-    box-shadow: 0 0 30px rgba(50, 180, 150, 0.5);
-    border: none;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 18px;
+    max-width: 700px;
+    margin: 30px auto;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.09);
+    border: 1px solid #e5e7eb;
+    animation: fadein 0.4s ease;
 }
 
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* FOTO PROFIL */
 .profil-header {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 28px;
+    margin-bottom: 20px;
 }
 
 .profil-foto {
-    width: 90px;
-    height: 90px;
-    background: #33aa77;
+    width: 95px;
+    height: 95px;
+    background: #6366f1;
     color: white;
     font-size: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 18px #33aa77;
+    box-shadow: 0 6px 18px rgba(99,102,241,0.3);
 }
 
+/* LABEL ROLE */
 .badge {
-    background: #33aa77;
-    color: white;
+    background: #e0e7ff;
+    color: #4338ca;
     padding: 6px 14px;
-    border-radius: 20px;
+    border-radius: 22px;
     font-size: 12px;
+    font-weight: 600;
     display: inline-block;
 }
 
+/* BUTTON */
 .btn {
     display: inline-block;
-    background: #33aa77;
+    background: #6366f1;
     color: white !important;
-    padding: 12px 22px;
+    padding: 12px 24px;
     margin-top: 18px;
     border-radius: 12px;
     font-weight: 700;
-    transition: background-color 0.25s ease;
-    box-shadow: 0 0 12px #33aa77;
+    transition: 0.25s ease;
+    box-shadow: 0 5px 16px rgba(99,102,241,0.3);
     cursor: pointer;
+    text-decoration: none;
+    text-align: center;
 }
-
 .btn:hover {
-    background: #2b8c63;
-    box-shadow: 0 0 18px #2b8c63;
+    background: #4f46e5;
+    box-shadow: 0 6px 20px rgba(79,70,229,0.45);
 }
 
+/* TABEL RIWAYAT */
 .table {
-    width: 95%;
-    margin: auto;
+    width: 94%;
+    margin: 15px auto 40px;
     border-collapse: collapse;  
-    background: #1f1f1f;
+    background: #ffffff;
     border-radius: 14px;
-    overflow: hidden;            
-    box-shadow: 0 0 25px rgba(50, 180, 150, 0.4);
-    border: none !important;     
-    outline: none !important;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
 }
 
 .table th {
-    background: #33aa77;
+    background: #f3f4f6;
     padding: 16px;
     font-size: 15px;
-    border: none;               
-    color: #e0e0e0;
+    font-weight: 700;
+    color: #374151;
     text-align: center;
 }
 
 .table td {
     padding: 13px;
     text-align: center;
-    border: none;                
-    border-bottom: 1px solid #264d39; 
-    color: #cce9d6;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
 }
 
 .table tr:last-child td {
-    border-bottom: none;         
+    border-bottom: none;
 }
 
 .table tr:hover {
-    background: rgba(50, 180, 150, 0.15);
+    background: #f9fafb;
 }
 
 .table img {
     border-radius: 9px;
-    box-shadow: 0 0 8px rgba(50, 180, 150, 0.7);
+    box-shadow: 0 0 6px rgba(0,0,0,0.05);
 }
 
-.table td:nth-child(7) {
-    font-weight: bold;
-    color: #33aa77;
-}
 </style>
 
 <h2>My Profile</h2>
