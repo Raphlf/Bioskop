@@ -1,44 +1,196 @@
-<?php
-require_once __DIR__ . '/../../src/db.php';
-require_once __DIR__ . '/../../src/auth.php';
-require_once __DIR__ . '/../../src/helpers.php';
-require_admin();
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kelola Jadwal</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-$jadwals = $pdo->query("SELECT s.*, f.title FROM schedules s JOIN films f ON s.film_id = f.id ORDER BY s.show_date, s.show_time")->fetchAll();
-?>
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
 
-<?php include __DIR__ . '/../../src/templates/header.php'; ?>
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1d1f27;
+    padding: 20px;
+    color: #fff;
+}
 
-<h2>Manage Jadwal</h2>
-<p><a href="<?= BASE_URL ?>/admin/jadwal_form.php" class="btn">Tambah Jadwal</a></p>
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
 
-<table class="table">
-    <thead><tr><th>ID</th><th>Film</th><th>Tanggal</th><th>Jam</th><th>Harga</th><th>Aksi</th></tr></thead>
-    <tbody>
-        <?php foreach($jadwals as $j): ?>
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin-bottom: 15px;
+}
+
+.menu a {
+    display: block;
+    padding: 10px;
+    color: #cfcfcf;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+   background: #4e5cff;
+    color: #fff;
+}
+
+.logout {
+    color: #ff6b6b !important;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f3f4f7;
+    overflow-y: auto;
+}
+
+.content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #4e5cff;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 12px;
+    background: #4e5cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+}
+
+.btn-warning {
+    background: #f4a742;
+}
+
+.form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    margin-top: 20px;
+}
+
+.form-box input,
+.form-box select,
+.form-box textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    margin-bottom: 15px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: #4e5cff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a href="films_manage.php">Kelola Film</a></li>
+            <li><a class="active" href="jadwal_manage.php">Kelola Jadwal</a></li>
+            <li><a href="users_manage.php">Kelola User</a></li>
+            <li><a href="exports.php">Export Data</a></li>
+            <li><a href="../logout.php" class="logout">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+
+        <h1>Kelola Jadwal</h1>
+
+        <a class="btn" href="jadwal_form.php">+ Tambah Jadwal</a>
+        <br><br>
+
+        <table class="table">
             <tr>
-                <td><?= $j['id'] ?></td>
-                <td><?= esc($j['title']) ?></td>
-                <td><?= esc($j['show_date']) ?></td>
-                <td><?= esc($j['show_time']) ?></td>
-                <td>Rp<?= number_format($j['price']) ?></td>
+                <th>ID</th>
+                <th>Film</th>
+                <th>Tanggal</th>
+                <th>Jam</th>
+                <th>Aksi</th>
+            </tr>
+
+            <tr>
+                <td>1</td>
+                <td>Avatar</td>
+                <td>2025-01-01</td>
+                <td>18:00</td>
                 <td>
-                    <a href="<?= BASE_URL ?>/admin/jadwal_form.php?id=<?= $j['id'] ?>">Edit</a> |
-                    <a href="<?= BASE_URL ?>/admin/jadwal_manage.php?delete=<?= $j['id'] ?>" onclick="return confirm('Hapus jadwal?')">Hapus</a>
+                    <a class="btn-warning btn" href="jadwal_form.php?id=1">Edit</a>
+                    <a class="btn-danger btn" href="#">Hapus</a>
                 </td>
             </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
 
-<?php
-if (isset($_GET['delete'])) {
-    $id = intval($_GET['delete']);
-    $stmt = $pdo->prepare("DELETE FROM schedules WHERE id = ?");
-    $stmt->execute([$id]);
-    header('Location: ' . BASE_URL . '/admin/jadwal_manage.php');
-    exit;
-}
-?>
+        </table>
 
-<?php include __DIR__ . '/../../src/templates/footer.php'; ?>
+    </main>
+
+</div>
+
+</body>
+</html>

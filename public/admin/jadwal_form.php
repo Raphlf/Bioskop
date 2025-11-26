@@ -1,76 +1,189 @@
-<?php
-require_once __DIR__ . '/../../src/db.php';
-require_once __DIR__ . '/../../src/auth.php';
-require_once __DIR__ . '/../../src/helpers.php';
-require_admin();
-
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$jadwal = null;
-if ($id) {
-    $stmt = $pdo->prepare("SELECT * FROM schedules WHERE id = ? LIMIT 1");
-    $stmt->execute([$id]);
-    $jadwal = $stmt->fetch();
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Form Jadwal</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-$films = $pdo->query("SELECT * FROM films ORDER BY title")->fetchAll();
-
-$errors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $film_id = intval($_POST['film_id']);
-    $date = $_POST['show_date'];
-    $time = $_POST['show_time'];
-    $price = floatval($_POST['price']);
-    $seats = intval($_POST['seats_total']);
-
-    if ($film_id <= 0) $errors[] = 'Pilih film';
-    if ($date == '' || $time == '') $errors[] = 'Tanggal/waktu wajib diisi';
-
-    if (empty($errors)) {
-        if ($jadwal) {
-            $stmt = $pdo->prepare("UPDATE schedules SET film_id=?, show_date=?, show_time=?, price=?, seats_total=?, seats_available=? WHERE id=?");
-            $stmt->execute([$film_id, $date, $time, $price, $seats, $seats, $id]);
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO schedules (film_id,show_date,show_time,price,seats_total,seats_available) VALUES (?,?,?,?,?,?)");
-            $stmt->execute([$film_id, $date, $time, $price, $seats, $seats]);
-        }
-        header('Location: ' . BASE_URL . '/admin/jadwal_manage.php');
-        exit;
-    }
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
 }
-?>
 
-<?php include __DIR__ . '/../../src/templates/header.php'; ?>
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1d1f27;
+    padding: 20px;
+    color: #fff;
+}
 
-<h2><?= $jadwal ? 'Edit' : 'Tambah' ?> Jadwal</h2>
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
 
-<?php if(!empty($errors)): ?>
-    <ul class="error">
-        <?php foreach($errors as $e): ?><li><?= esc($e) ?></li><?php endforeach; ?>
-    </ul>
-<?php endif; ?>
+.menu {
+    list-style: none;
+}
 
-<form method="POST" class="form-card">
-    <label>Film</label>
-    <select name="film_id" required>
-        <option value="">-- Pilih --</option>
-        <?php foreach($films as $f): ?>
-            <option value="<?= $f['id'] ?>" <?= $jadwal && $jadwal['film_id']==$f['id'] ? 'selected' : '' ?>><?= esc($f['title']) ?></option>
-        <?php endforeach; ?>
-    </select>
+.menu li {
+    margin-bottom: 15px;
+}
 
-    <label>Tanggal</label>
-    <input type="date" name="show_date" value="<?= $jadwal ? esc($jadwal['show_date']) : '' ?>" required>
+.menu a {
+    display: block;
+    padding: 10px;
+    color: #cfcfcf;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.2s;
+}
 
-    <label>Waktu</label>
-    <input type="time" name="show_time" value="<?= $jadwal ? esc($jadwal['show_time']) : '' ?>" required>
+.menu a:hover,
+.menu a.active {
+   background: #4e5cff;
+    color: #fff;
+}
 
-    <label>Harga</label>
-    <input type="number" step="0.01" name="price" value="<?= $jadwal ? esc($jadwal['price']) : '' ?>" required>
+.logout {
+    color: #ff6b6b !important;
+}
 
-    <label>Jumlah Kursi</label>
-    <input type="number" name="seats_total" value="<?= $jadwal ? esc($jadwal['seats_total']) : 100 ?>" required>
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f3f4f7;
+    overflow-y: auto;
+}
 
-    <button type="submit">Simpan</button>
-</form>
+.content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
 
-<?php include __DIR__ . '/../../src/templates/footer.php'; ?>
+.subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #4e5cff;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 12px;
+    background: #4e5cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+}
+
+.btn-warning {
+    background: #f4a742;
+}
+
+.form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    margin-top: 20px;
+}
+
+.form-box input,
+.form-box select,
+.form-box textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    margin-bottom: 15px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: #4e5cff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a href="films_manage.php">Kelola Film</a></li>
+            <li><a class="active" href="jadwal_manage.php">Kelola Jadwal</a></li>
+            <li><a href="users_manage.php">Kelola User</a></li>
+            <li><a href="exports.php">Export Data</a></li>
+            <li><a href="../logout.php" class="logout">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <h1>Form Jadwal</h1>
+
+        <div class="form-box">
+            <form method="post">
+
+                <label>Film</label>
+                <select>
+                    <option value="">-- Pilih Film --</option>
+                    <option>Avatar</option>
+                </select>
+
+                <label>Tanggal</label>
+                <input type="date" required>
+
+                <label>Jam Tayang</label>
+                <input type="time" required>
+
+                <button type="submit">Simpan</button>
+            </form>
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

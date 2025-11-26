@@ -1,30 +1,190 @@
-<?php
-require_once __DIR__ . '/../../src/helpers.php';
-require_once __DIR__ . '/../../src/db.php';
-require_once __DIR__ . '/../../src/auth.php';
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kelola User</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-require_admin();
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
 
-$users = $pdo->query("SELECT id,name,email,role,created_at FROM users ORDER BY created_at DESC")->fetchAll();
-?>
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1d1f27;
+    padding: 20px;
+    color: #fff;
+}
 
-<?php include __DIR__ . '/../../src/templates/header.php'; ?>
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
 
-<h2>Manage Users</h2>
+.menu {
+    list-style: none;
+}
 
-<table class="table">
-    <thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>Role</th><th>Created</th></tr></thead>
-    <tbody>
-        <?php foreach($users as $u): ?>
+.menu li {
+    margin-bottom: 15px;
+}
+
+.menu a {
+    display: block;
+    padding: 10px;
+    color: #cfcfcf;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+   background: #4e5cff;
+    color: #fff;
+}
+
+.logout {
+    color: #ff6b6b !important;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f3f4f7;
+    overflow-y: auto;
+}
+
+.content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #4e5cff;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 12px;
+    background: #4e5cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+}
+
+.btn-warning {
+    background: #f4a742;
+}
+
+.form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    margin-top: 20px;
+}
+
+.form-box input,
+.form-box select,
+.form-box textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    margin-bottom: 15px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: #4e5cff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a href="films_manage.php">Kelola Film</a></li>
+            <li><a href="jadwal_manage.php">Kelola Jadwal</a></li>
+            <li><a class="active" href="users_manage.php">Kelola User</a></li>
+            <li><a href="exports.php">Export Data</a></li>
+            <li><a href="../logout.php" class="logout">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+
+        <h1>Kelola User</h1>
+
+        <table class="table">
             <tr>
-                <td><?= $u['id'] ?></td>
-                <td><?= esc($u['name']) ?></td>
-                <td><?= esc($u['email']) ?></td>
-                <td><?= esc($u['role']) ?></td>
-                <td><?= esc($u['created_at']) ?></td>
+                <th>ID</th>
+                <th>Nama</th>
+                <th>Email</th>
+                <th>Aksi</th>
             </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
 
-<?php include __DIR__ . '/../../src/templates/footer.php'; ?>
+            <tr>
+                <td>1</td>
+                <td>User Contoh</td>
+                <td>user@gmail.com</td>
+                <td>
+                    <a class="btn-danger btn" href="#">Hapus</a>
+                </td>
+            </tr>
+
+        </table>
+
+    </main>
+
+</div>
+
+</body>
+</html>

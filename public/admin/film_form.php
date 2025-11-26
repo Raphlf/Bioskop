@@ -1,74 +1,188 @@
-<?php
-require_once __DIR__ . '/../../src/db.php';
-require_once __DIR__ . '/../../src/auth.php';
-require_once __DIR__ . '/../../src/helpers.php';
-require_admin();
-
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$film = null;
-if ($id) {
-    $stmt = $pdo->prepare("SELECT * FROM films WHERE id = ? LIMIT 1");
-    $stmt->execute([$id]);
-    $film = $stmt->fetch();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form Film</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-$errors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = trim($_POST['title']);
-    $genre = trim($_POST['genre']);
-    $duration = intval($_POST['duration']);
-    $desc = trim($_POST['description']);
-
-    if ($title === '') $errors[] = 'Title wajib diisi';
-
-    $poster_path = $film['poster'] ?? '';
-    if (!empty($_FILES['poster']['name'])) {
-        $up = upload_image($_FILES['poster']);
-        if ($up) $poster_path = $up;
-        else $errors[] = 'Upload poster gagal (pastikan jpg/png & <2MB)';
-    }
-
-    if (empty($errors)) {
-        if ($film) {
-            $stmt = $pdo->prepare("UPDATE films SET title=?, genre=?, duration=?, description=?, poster=? WHERE id=?");
-            $stmt->execute([$title, $genre, $duration, $desc, $poster_path, $id]);
-        } else {
-            $stmt = $pdo->prepare("INSERT INTO films (title,genre,duration,description,poster) VALUES (?,?,?,?,?)");
-            $stmt->execute([$title, $genre, $duration, $desc, $poster_path]);
-        }
-        header('Location: ' . BASE_URL . '/admin/films_manage.php');
-        exit;
-    }
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
 }
-?>
 
-<?php include __DIR__ . '/../../src/templates/header.php'; ?>
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1d1f27;
+    padding: 20px;
+    color: #fff;
+}
 
-<h2><?= $film ? 'Edit' : 'Tambah' ?> Film</h2>
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
 
-<?php if(!empty($errors)): ?>
-    <ul class="error">
-        <?php foreach($errors as $e): ?><li><?= esc($e) ?></li><?php endforeach; ?>
-    </ul>
-<?php endif; ?>
+.menu {
+    list-style: none;
+}
 
-<form method="POST" enctype="multipart/form-data" class="form-card">
-    <label>Title</label>
-    <input type="text" name="title" value="<?= $film ? esc($film['title']) : '' ?>" required>
+.menu li {
+    margin-bottom: 15px;
+}
 
-    <label>Genre</label>
-    <input type="text" name="genre" value="<?= $film ? esc($film['genre']) : '' ?>">
+.menu a {
+    display: block;
+    padding: 10px;
+    color: #cfcfcf;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.2s;
+}
 
-    <label>Duration (menit)</label>
-    <input type="number" name="duration" value="<?= $film ? esc($film['duration']) : '' ?>">
+.menu a:hover,
+.menu a.active {
+   background: #4e5cff;
+    color: #fff;
+}
 
-    <label>Description</label>
-    <textarea name="description"><?= $film ? esc($film['description']) : '' ?></textarea>
+.logout {
+    color: #ff6b6b !important;
+}
 
-    <label>Poster (jpg/png, &lt;2MB)</label>
-    <input type="file" name="poster" accept="image/*">
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f3f4f7;
+    overflow-y: auto;
+}
 
-    <button type="submit">Simpan</button>
-</form>
+.content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
 
-<?php include __DIR__ . '/../../src/templates/footer.php'; ?>
+.subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #4e5cff;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 12px;
+    background: #4e5cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+}
+
+.btn-warning {
+    background: #f4a742;
+}
+
+.form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    margin-top: 20px;
+}
+
+.form-box input,
+.form-box select,
+.form-box textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    margin-bottom: 15px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: #4e5cff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a class="active" href="films_manage.php">Kelola Film</a></li>
+            <li><a href="jadwal_manage.php">Kelola Jadwal</a></li>
+            <li><a href="users_manage.php">Kelola User</a></li>
+            <li><a href="exports.php">Export Data</a></li>
+            <li><a href="../logout.php" class="logout">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <h1>Form Film</h1>
+
+        <div class="form-box">
+            <form method="post">
+
+                <label>Judul Film</label>
+                <input type="text" required>
+
+                <label>Genre</label>
+                <input type="text" required>
+
+                <label>Durasi (menit)</label>
+                <input type="number" required>
+
+                <label>Deskripsi</label>
+                <textarea rows="4"></textarea>
+
+                <button type="submit">Simpan</button>
+            </form>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

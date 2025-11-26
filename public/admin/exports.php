@@ -1,26 +1,180 @@
-<?php
-// simple CSV export example for reservations
-require_once __DIR__ . '/../../src/db.php';
-require_once __DIR__ . '/../../src/auth.php';
-require_admin();
-
-header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename=reservations.csv');
-
-$out = fopen('php://output', 'w');
-fputcsv($out, ['ID','User','Film','Tanggal','Waktu','Seats','Total','Status','BookedAt']);
-
-$stmt = $pdo->query("SELECT r.*, u.name AS user_name, f.title AS film_title, s.show_date, s.show_time
-    FROM reservations r
-    JOIN users u ON r.user_id = u.id
-    JOIN schedules s ON r.schedule_id = s.id
-    JOIN films f ON s.film_id = f.id");
-while ($row = $stmt->fetch()) {
-    fputcsv($out, [
-        $row['id'], $row['user_name'], $row['film_title'], $row['show_date'], $row['show_time'],
-        $row['seats'], $row['total_price'], $row['status'], $row['booking_time']
-    ]);
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Export Data</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
-fclose($out);
-exit;
-?>
+
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    background: #1d1f27;
+    padding: 20px;
+    color: #fff;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.menu {
+    list-style: none;
+}
+
+.menu li {
+    margin-bottom: 15px;
+}
+
+.menu a {
+    display: block;
+    padding: 10px;
+    color: #cfcfcf;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+   background: #4e5cff;
+    color: #fff;
+}
+
+.logout {
+    color: #ff6b6b !important;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f3f4f7;
+    overflow-y: auto;
+}
+
+.content h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+/* Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table th {
+    background: #4e5cff;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 12px;
+    background: #4e5cff;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #ff6b6b;
+}
+
+.btn-warning {
+    background: #f4a742;
+}
+
+.form-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 450px;
+    margin-top: 20px;
+}
+
+.form-box input,
+.form-box select,
+.form-box textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    margin-bottom: 15px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: #4e5cff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+        <h2 class="logo">🎬 Admin</h2>
+
+        <ul class="menu">
+            <li><a href="dashboard.php">Dashboard</a></li>
+            <li><a href="films_manage.php">Kelola Film</a></li>
+            <li><a href="jadwal_manage.php">Kelola Jadwal</a></li>
+            <li><a href="users_manage.php">Kelola User</a></li>
+            <li><a class="active" href="exports.php">Export Data</a></li>
+            <li><a href="../logout.php" class="logout">Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+
+        <h1>Export Data</h1>
+        <p class="subtitle">Export database ke CSV / Excel</p>
+
+        <a class="btn" href="#">Export Film</a>
+        <br><br>
+
+        <a class="btn" href="#">Export Jadwal</a>
+        <br><br>
+
+        <a class="btn" href="#">Export User</a>
+
+    </main>
+
+</div>
+
+</body>
+</html>
