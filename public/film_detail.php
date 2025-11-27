@@ -33,6 +33,8 @@ include __DIR__ . '/../src/templates/header.php';
 
 <style>
 body {
+    margin: 0;
+    padding: 0;
     background: #f9fafb;
     font-family: system-ui, sans-serif;
 }
@@ -92,6 +94,15 @@ body {
     border-radius: 8px;
     border: none;
     cursor: pointer;
+}
+
+footer {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: #0C1E35;
+    color: white;
+    text-align: center;
 }
 </style>
 
