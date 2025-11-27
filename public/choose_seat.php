@@ -148,8 +148,14 @@ include __DIR__ . '/../src/templates/header.php';
 ?>
 
 <style>
-
+html {
+    /* 1. Pastikan HTML mengambil seluruh tinggi viewport */
+    height: 100%;
+}
 body {
+    display: flex;
+    flex-direction: column; /* Susun elemen ke bawah */
+    min-height: 100vh;      /* Minimal setinggi jendela browser */
     margin: 0;
     padding: 0;
     background:#f1f5f9;
@@ -160,6 +166,7 @@ body {
     max-width:900px;
     margin:110px auto 50px;
     text-align:center;
+    flex: 1;
 }
 
 .seat-title {
@@ -201,13 +208,20 @@ body {
 }
 
 .seat-btn {
-    padding:10px 0;
-    border-radius:8px;
-    border:1px solid #d1d5db;
-    background:white;
-    cursor:pointer;
-    font-size:13px;
-    transition:.2s ease;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    cursor: pointer;
+    font-size: 13px;
+    transition: .2s ease;
+    /* Tambahkan ini */
+    min-width: 55px; /* Sesuaikan nilai ini sesuai keinginan Anda */
+    height: 35px; /* Opsional: buat tinggi dan lebarnya sama untuk tombol persegi */
+    display: flex; /* Untuk menengahkan teks jika ada padding horizontal */
+    align-items: center;
+    justify-content: center;
+    transition: ease .2s;
 }
 
 .seat-btn:hover {

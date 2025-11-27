@@ -1,4 +1,5 @@
 <?php
+// PHP LOGIC SECTION (Tidak ada perubahan pada logika pengambilan data)
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
@@ -32,19 +33,37 @@ include __DIR__ . '/../src/templates/header.php';
 ?>
 
 <style>
+/* ------------------------------------------- */
+/* CSS FIX UNTUK STICKY FOOTER */
+/* ------------------------------------------- */
+html {
+    height: 100%;
+}
 body {
+    display: flex;
+    flex-direction: column; 
+    min-height: 100vh;      
     margin: 0;
     padding: 0;
     background: #f9fafb;
     font-family: system-ui, sans-serif;
 }
+/* Bagian ini membungkus semua konten di antara header dan footer */
+.main-content-wrapper { 
+    flex: 1; /* Konten utama akan meregang dan mendorong footer ke bawah */
+    width: 100%;
+}
+
+/* ------------------------------------------- */
+/* CSS DETAIL FILM */
+/* ------------------------------------------- */
 
 /* Container */
 .detail-container {
     max-width: 1100px;
     margin: 120px auto;
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 2fr; /* Layout Poster (1fr) dan Info (2fr) */
     gap: 40px;
     padding: 0 20px;
 }
@@ -96,8 +115,9 @@ body {
     cursor: pointer;
 }
 
+/* FOOTER (margin-top dihapus) */
 footer {
-    margin: 0;
+    margin: 0; /* PENTING: Menghapus margin-top lama */
     padding: 0;
     width: 100%;
     background: #0C1E35;
@@ -106,52 +126,53 @@ footer {
 }
 </style>
 
-<div class="detail-container">
+<main class="main-content-wrapper"> 
+    <div class="detail-container">
 
-    <!-- Poster -->
-    <div class="detail-poster">
-        <img src="<?= BASE_URL ?>/<?= esc($film['poster']) ?>">
-    </div>
-
-    <!-- Info Film -->
-    <div class="detail-info">
-        <h1><?= esc($film['title']) ?></h1>
-        <div class="detail-meta">
-            <?= esc($film['genre']) ?> • <?= esc($film['duration']) ?> menit
+        <div class="detail-poster">
+            <img src="<?= BASE_URL ?>/<?= esc($film['poster']) ?>">
         </div>
 
-        <p class="detail-desc"><?= nl2br(esc($film['description'])) ?></p>
+        <div class="detail-info">
+            <h1><?= esc($film['title']) ?></h1>
+            <div class="detail-meta">
+                <?= esc($film['genre']) ?> • <?= esc($film['duration']) ?> menit
+            </div>
 
-        <h3>Sinopsis</h3>
-        <p class="detail-synopsis"><?= nl2br(esc($film['description'])) ?></p>
+            <p class="detail-desc"><?= nl2br(esc($film['description'])) ?></p>
 
-        <h3>Jadwal Tersedia</h3>
+            <h3>Sinopsis</h3>
+            <p class="detail-synopsis"><?= nl2br(esc($film['description'])) ?></p>
 
-        <div class="jadwal-box">
-            <?php if (count($jadwals) == 0): ?>
-                <p style="color:#777;">Belum ada jadwal.</p>
-            <?php else: ?>
-                
-                <?php foreach($jadwals as $j): ?>
-                    <div class="jadwal-item">
-                        <div>
-                            <b><?= date('d M Y H:i', strtotime($j['show_time'])) ?></b><br>
-                            Studio: <?= $j['studio_name'] ?><br>
-                            Harga: Rp<?= number_format($j['price'],0,',','.') ?>
+            <h3>Jadwal Tersedia</h3>
+
+            <div class="jadwal-box">
+                <?php if (count($jadwals) == 0): ?>
+                    <p style="color:#777;">Belum ada jadwal.</p>
+                <?php else: ?>
+                    
+                    <?php foreach($jadwals as $j): ?>
+                        <div class="jadwal-item">
+                            <div>
+                                <b><?= date('d M Y H:i', strtotime($j['show_time'])) ?></b><br>
+                                Studio: <?= $j['studio_name'] ?><br>
+                                Harga: Rp<?= number_format($j['price'],0,',','.') ?>
+                            </div>
+
+                            <form method="GET" action="<?= BASE_URL ?>/reservasi.php">
+                                <input type="hidden" name="schedule_id" value="<?= $j['id'] ?>">
+                                <button type="submit">Pesan</button>
+                            </form>
                         </div>
+                    <?php endforeach; ?>
 
-                        <form method="GET" action="<?= BASE_URL ?>/reservasi.php">
-                            <input type="hidden" name="schedule_id" value="<?= $j['id'] ?>">
-                            <button type="submit">Pesan</button>
-                        </form>
-                    </div>
-                <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
 
-            <?php endif; ?>
         </div>
 
     </div>
 
-</div>
+</main>
 
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
