@@ -1,3 +1,15 @@
+<?php
+require_once __DIR__ . '/../../src/db.php';
+
+$stmt = $pdo->query("
+    SELECT s.id, f.title, s.show_time, s.price, st.name AS studio_nama
+    FROM schedules s
+    JOIN films f ON s.film_id = f.id
+    JOIN studios st ON s.studio_id = st.id
+    ORDER BY s.show_time ASC
+");
+$jadwal = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -50,7 +62,7 @@
 
 .menu a:hover,
 .menu a.active {
-   background: #4e5cff;
+    background: #4e5cff;
     color: #fff;
 }
 
@@ -68,79 +80,68 @@
 
 .content h1 {
     font-size: 32px;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
 }
 
-.subtitle {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 30px;
-}
-
-/* Table */
-.table {
+/* === TABLE STYLE FIXED === */
+table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
 }
 
-.table th {
+thead th {
     background: #4e5cff;
     color: white;
-    padding: 12px;
-    text-align: left;
+    padding: 14px;
+    font-size: 15px;
 }
 
-.table td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
+tbody tr {
+    transition: 0.2s;
 }
 
+tbody tr:hover {
+    background: #f1f3ff;
+}
+
+tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e5e5;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Buttons */
 .btn {
     padding: 8px 12px;
     background: #4e5cff;
     color: white;
     border-radius: 6px;
     text-decoration: none;
+    font-size: 14px;
 }
 
-.btn-danger {
-    background: #ff6b6b;
-}
-
-.btn-warning {
+.btn-edit {
+    padding: 7px 12px;
     background: #f4a742;
-}
-
-.form-box {
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    width: 450px;
-    margin-top: 20px;
-}
-
-.form-box input,
-.form-box select,
-.form-box textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #aaa;
-    margin-bottom: 15px;
-}
-
-.form-box button {
-    width: 100%;
-    padding: 10px;
-    background: #4e5cff;
     color: #fff;
-    border: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-right: 6px;
 }
-    </style>
+
+.btn-delete {
+    padding: 7px 12px;
+    background: #ff6b6b;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+}
+</style>
 </head>
 <body>
 
@@ -166,27 +167,43 @@
         <a class="btn" href="jadwal_form.php">+ Tambah Jadwal</a>
         <br><br>
 
-        <table class="table">
-            <tr>
-                <th>ID</th>
-                <th>Film</th>
-                <th>Tanggal</th>
-                <th>Jam</th>
-                <th>Aksi</th>
-            </tr>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Film</th>
+            <th>Studio</th>
+            <th>Tanggal</th>
+            <th>Jam</th>
+            <th>Harga</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
 
-            <tr>
-                <td>1</td>
-                <td>Avatar</td>
-                <td>2025-01-01</td>
-                <td>18:00</td>
-                <td>
-                    <a class="btn-warning btn" href="jadwal_form.php?id=1">Edit</a>
-                    <a class="btn-danger btn" href="#">Hapus</a>
-                </td>
-            </tr>
+    <tbody>
+    <?php foreach ($jadwal as $j): 
+        $dt = new DateTime($j['show_time']);
+    ?>
+        <tr>
+            <td><?= $j['id'] ?></td>
+            <td><?= htmlspecialchars($j['title']) ?></td>
+            <td>Studio <?= htmlspecialchars($j['studio_nama']) ?></td>
 
-        </table>
+            <td><?= $dt->format("Y-m-d") ?></td>
+            <td><?= $dt->format("H:i") ?></td>
+
+            <td>Rp <?= number_format($j['price'], 0, ',', '.') ?></td>
+
+            <td>
+                <a href="jadwal_form.php?id=<?= $j['id'] ?>" class="btn-edit">Edit</a>
+                <a onclick="return confirm('Yakin hapus?')" 
+                   href="jadwal_delete.php?id=<?= $j['id'] ?>"
+                   class="btn-delete">Hapus</a>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
 
     </main>
 

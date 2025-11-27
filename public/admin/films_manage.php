@@ -171,6 +171,18 @@ $films = $pdo->query("SELECT * FROM films ORDER BY id DESC")->fetchAll();
         <a class="btn" href="film_form.php">+ Tambah Film</a>
         <br><br>
 
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert" style="color:green;margin-bottom:10px;">
+                <?= htmlspecialchars($_GET['success']) ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error'])): ?>
+            <div class="alert" style="color:red;margin-bottom:10px;">
+                <?= htmlspecialchars($_GET['error']) ?>
+            </div>
+        <?php endif; ?>
+
         <table class="table">
             <tr>
                 <th>ID</th>
@@ -191,26 +203,32 @@ $films = $pdo->query("SELECT * FROM films ORDER BY id DESC")->fetchAll();
                     <?php endif; ?>
                 </td>
 
-<td>
-    <?php
-        // auto fix
-        $judul = $film['title']
-                 ?? $film['nama_film']
-                 ?? $film['judul']
-                 ?? $film['name']
-                 ?? '(judul tidak tersedia)';
-
-        echo htmlspecialchars($judul);
-    ?>
-</td>
+                <td>
+                    <?php
+                        // memperbaiki nama kolom yg berbeda
+                        $judul = $film['title']
+                                 ?? $film['nama_film']
+                                 ?? $film['judul']
+                                 ?? $film['name']
+                                 ?? '(judul tidak tersedia)';
+                        echo htmlspecialchars($judul);
+                    ?>
+                </td>
 
                 <td>
                     <a class="btn btn-warning" href="film_form.php?id=<?= $film['id'] ?>">Edit</a>
+
+                    <!-- FIX DELETE -->
                     <a class="btn btn-danger"
-                       href="films_delete.php?id=<?= $film['id'] ?>"
-                       onclick="return confirm('Hapus film ini?')">Hapus</a>
+                       href="film_delete.php?id=<?= $film['id'] ?>"
+                       onclick="return confirm('Hapus film ini?')">
+                        Hapus
+                    </a>
+
                     <a class="btn btn-green" 
-                       href="seats_manage.php?film_id=<?= $film['id'] ?>">Lihat Kursi</a>
+                       href="seats_manage.php?film_id=<?= $film['id'] ?>">
+                       Lihat Kursi
+                    </a>
                 </td>
             </tr>
             <?php endforeach; ?>

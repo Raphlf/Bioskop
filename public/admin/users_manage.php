@@ -1,21 +1,42 @@
+<?php
+require_once "../../src/db.php";
+
+// DELETE USER
+if (isset($_GET['delete'])) {
+    $id = $_GET['delete'];
+    $pdo->prepare("DELETE FROM users WHERE id=?")->execute([$id]);
+    header("Location: users_manage.php");
+    exit;
+}
+
+// UPDATE ROLE
+if (isset($_POST['update_role'])) {
+    $id   = $_POST['id'];
+    $role = $_POST['role'];
+
+    $pdo->prepare("UPDATE users SET role=? WHERE id=?")->execute([$role, $id]);
+
+    header("Location: users_manage.php");
+    exit;
+}
+
+$users = $pdo->query("SELECT * FROM users ORDER BY id DESC")->fetchAll();
+?>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <title>Kelola User</title>
+
     <style>
 * {
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
 
 /* Layout */
-.container {
-    display: flex;
-    height: 100vh;
-}
+.container { display: flex; height: 100vh; }
 
 /* Sidebar */
 .sidebar {
@@ -25,19 +46,10 @@
     color: #fff;
 }
 
-.logo {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 24px;
-}
+.logo { text-align: center; margin-bottom: 30px; font-size: 24px; }
 
-.menu {
-    list-style: none;
-}
-
-.menu li {
-    margin-bottom: 15px;
-}
+.menu { list-style: none; }
+.menu li { margin-bottom: 15px; }
 
 .menu a {
     display: block;
@@ -48,15 +60,13 @@
     transition: 0.2s;
 }
 
-.menu a:hover,
-.menu a.active {
-   background: #4e5cff;
-    color: #fff;
+.menu a.active,
+.menu a:hover {
+    background: #4e5cff;
+    color: white;
 }
 
-.logout {
-    color: #ff6b6b !important;
-}
+.logout { color: #ff6b6b !important; }
 
 /* Content */
 .content {
@@ -66,16 +76,7 @@
     overflow-y: auto;
 }
 
-.content h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 30px;
-}
+.content h1 { font-size: 32px; margin-bottom: 10px; }
 
 /* Table */
 .table {
@@ -99,46 +100,37 @@
 }
 
 .btn {
-    padding: 8px 12px;
-    background: #4e5cff;
+    padding: 7px 12px;
+    text-decoration: none;
     color: white;
     border-radius: 6px;
-    text-decoration: none;
+    font-size: 14px;
 }
 
-.btn-danger {
-    background: #ff6b6b;
-}
+.btn-danger { background: #ff6b6b; }
+.btn-warning { background: #f4a742; }
 
-.btn-warning {
-    background: #f4a742;
-}
-
-.form-box {
-    background: #fff;
+/* Role Edit Box */
+.role-box {
+    background: white;
     padding: 20px;
-    border-radius: 12px;
-    width: 450px;
     margin-top: 20px;
+    border-radius: 12px;
+    width: 400px;
 }
 
-.form-box input,
-.form-box select,
-.form-box textarea {
+.role-box select, .role-box button {
     width: 100%;
     padding: 10px;
+    margin-bottom: 15px;
     border-radius: 8px;
     border: 1px solid #aaa;
-    margin-bottom: 15px;
 }
 
-.form-box button {
-    width: 100%;
-    padding: 10px;
+.role-box button {
     background: #4e5cff;
-    color: #fff;
+    color: white;
     border: none;
-    border-radius: 8px;
 }
     </style>
 </head>
@@ -146,6 +138,7 @@
 
 <div class="container">
 
+    <!-- Sidebar -->
     <aside class="sidebar">
         <h2 class="logo">🎬 Admin</h2>
 
@@ -159,28 +152,57 @@
         </ul>
     </aside>
 
+    <!-- Content -->
     <main class="content">
 
         <h1>Kelola User</h1>
 
+        <!-- Table -->
         <table class="table">
             <tr>
                 <th>ID</th>
                 <th>Nama</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Aksi</th>
             </tr>
 
+            <?php foreach ($users as $u): ?>
             <tr>
-                <td>1</td>
-                <td>User Contoh</td>
-                <td>user@gmail.com</td>
+                <td><?= $u['id'] ?></td>
+                <td><?= htmlspecialchars($u['name']) ?></td>
+                <td><?= htmlspecialchars($u['email']) ?></td>
+                <td><?= $u['role'] ?></td>
                 <td>
-                    <a class="btn-danger btn" href="#">Hapus</a>
+                    <a class="btn-warning btn" href="users_manage.php?edit=<?= $u['id'] ?>">Edit Role</a>
+                    <a class="btn-danger btn" href="users_manage.php?delete=<?= $u['id'] ?>" onclick="return confirm('Yakin hapus user?')">Hapus</a>
                 </td>
             </tr>
-
+            <?php endforeach; ?>
         </table>
+
+        <!-- Edit Role Only -->
+        <?php if (isset($_GET['edit'])):
+            $id = $_GET['edit'];
+            $st = $pdo->prepare("SELECT * FROM users WHERE id=?");
+            $st->execute([$id]);
+            $user = $st->fetch();
+        ?>
+        <div class="role-box">
+            <h3>Edit Role User</h3>
+
+            <form method="POST">
+                <input type="hidden" name="id" value="<?= $user['id'] ?>">
+
+                <select name="role">
+                    <option value="user" <?= $user['role']=="user"?"selected":"" ?>>User</option>
+                    <option value="admin" <?= $user['role']=="admin"?"selected":"" ?>>Admin</option>
+                </select>
+
+                <button type="submit" name="update_role">Simpan Perubahan</button>
+            </form>
+        </div>
+        <?php endif; ?>
 
     </main>
 

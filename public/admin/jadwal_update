@@ -1,0 +1,28 @@
+<?php
+require_once __DIR__ . '/../../src/db.php';
+
+$id      = $_POST['id'] ?? null;
+$film_id = $_POST['film_id'] ?? null;
+$date    = $_POST['date'] ?? null;
+$time    = $_POST['time'] ?? null;
+
+if (!$id || !$film_id || !$date || !$time) {
+    die("Semua field wajib diisi.");
+}
+
+$show_time = "$date $time:00";
+
+try {
+    $stmt = $pdo->prepare("
+        UPDATE schedules
+        SET film_id = ?, show_time = ?
+        WHERE id = ?
+    ");
+    $stmt->execute([$film_id, $show_time, $id]);
+
+    header("Location: jadwal_manage.php?updated=1");
+    exit;
+
+} catch (PDOException $e) {
+    die("Error: " . $e->getMessage());
+}

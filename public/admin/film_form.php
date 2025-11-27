@@ -29,13 +29,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Upload poster
     $posterName = $film["poster"];
 
+    // Folder upload yang benar (FIX)
+    $uploadPath = __DIR__ . "/../assets/uploads/";
+
+    // Jika ada poster baru
     if (!empty($_FILES["poster"]["name"])) {
         $posterName = time() . "_" . $_FILES["poster"]["name"];
-        move_uploaded_file($_FILES["poster"]["tmp_name"], __DIR__ . "/assets/uploads/" . $posterName);
+
+        // Pastikan folder ada
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        move_uploaded_file(
+            $_FILES["poster"]["tmp_name"],
+            $uploadPath . $posterName
+        );
     }
 
     if ($edit) {
-        $stmt = $pdo->prepare("UPDATE films SET title=?, genre=?, duration=?, description=?, poster=? WHERE id=?");
+        $stmt = $pdo->prepare("UPDATE films 
+                               SET title=?, genre=?, duration=?, description=?, poster=? 
+                               WHERE id=?");
         $stmt->execute([$title, $genre, $duration, $description, $posterName, $_GET["id"]]);
     } else {
         $stmt = $pdo->prepare("INSERT INTO films (title, genre, duration, description, poster)
@@ -130,7 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <div class="container">
 
-    <!-- SIDEBAR COPY DARI DASHBOARD -->
+    <!-- SIDEBAR COPY -->
     <aside class="sidebar">
         <h2 class="logo">🎬 Admin</h2>
         <ul class="menu">
@@ -165,7 +180,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="file" name="poster">
 
                 <?php if ($edit && $film['poster']): ?>
-                    <img src="assets/uploads/<?= $film['poster'] ?>" width="140" style="border-radius:10px;margin-bottom:10px">
+                    <img src="../assets/uploads/<?= $film['poster'] ?>" width="140" style="border-radius:10px;margin-bottom:10px">
                 <?php endif; ?>
 
                 <label>Deskripsi</label>

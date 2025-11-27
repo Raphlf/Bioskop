@@ -7,7 +7,7 @@ $totalRooms = $pdo->query("SELECT COUNT(*) FROM rooms")->fetchColumn();
 $totalSchedules = $pdo->query("SELECT COUNT(*) FROM schedules")->fetchColumn();
 $totalBookings = $pdo->query("SELECT COUNT(*) FROM bookings")->fetchColumn();
 
-// Data chart “Penonton per Film”
+// Data chart Penonton per Film
 $filmChart = $pdo->query("
     SELECT f.title, COUNT(b.id) AS total
     FROM films f
@@ -42,122 +42,38 @@ for ($i = 6; $i >= 0; $i--) {
 <head>
 <meta charset="UTF-8">
 <title>Dashboard Admin</title>
-
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
+* { margin:0; padding:0; box-sizing:border-box; font-family: Arial,sans-serif; }
 
 /* Layout */
-.container {
-    display: flex;
-    height: 100vh;
-}
+.container { display:flex; height:100vh; }
 
 /* Sidebar */
-.sidebar {
-    width: 250px;
-    background: #1d1f27;
-    padding: 20px;
-    color: #fff;
-}
-
-.logo {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 24px;
-}
-
-.menu {
-    list-style: none;
-}
-
-.menu li {
-    margin-bottom: 15px;
-}
-
-.menu a {
-    display: block;
-    padding: 10px;
-    color: #cfcfcf;
-    text-decoration: none;
-    border-radius: 6px;
-    transition: 0.2s;
-}
-
-.menu a:hover,
-.menu a.active {
-    background: #4e5cff;
-    color: #fff;
-}
-
-.logout {
-    color: #ff6b6b !important;
-}
+.sidebar { width:250px; background:#1d1f27; padding:20px; color:#fff; }
+.logo { text-align:center; margin-bottom:30px; font-size:24px; }
+.menu { list-style:none; }
+.menu li { margin-bottom:15px; }
+.menu a { display:block; padding:10px; color:#cfcfcf; text-decoration:none; border-radius:6px; transition:0.2s; }
+.menu a:hover, .menu a.active { background:#4e5cff; color:#fff; }
+.logout { color:#ff6b6b !important; }
 
 /* Content */
-.content {
-    flex: 1;
-    padding: 30px;
-    background: #f3f4f7;
-    overflow-y: auto;
-}
-
-.content h1 {
-    font-size: 32px;
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 30px;
-}
+.content { flex:1; padding:25px; background:#f3f4f7; overflow-y:auto; }
+.content h1 { font-size:28px; margin-bottom:10px; }
+.subtitle { font-size:14px; color:#555; margin-bottom:20px; }
 
 /* Cards */
-.cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 25px;
-}
-
-.card {
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.card h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #444;
-}
-
-.card p {
-    font-size: 40px;
-    margin-top: 5px;
-    font-weight: bold;
-    color: #4e5cff;
-}
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:15px; margin-bottom:20px; }
+.card { background:#fff; padding:15px; border-radius:10px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+.card h3 { font-size:16px; margin-bottom:8px; color:#444; }
+.card p { font-size:24px; font-weight:bold; color:#4e5cff; margin-top:5px; }
 
 /* Chart box */
-.chart-box {
-    background: #fff;
-    padding: 25px;
-    margin-top: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
+.chart-box { background:#fff; padding:15px; margin-bottom:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+.chart-box h3 { font-size:16px; margin-bottom:10px; color:#444; }
+canvas { max-height:250px; }
 </style>
-
 </head>
 <body>
 
@@ -166,7 +82,6 @@ for ($i = 6; $i >= 0; $i--) {
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <h2 class="logo">🎬 Admin</h2>
-
         <ul class="menu">
             <li><a href="dashboard.php" class="active">Dashboard</a></li>
             <li><a href="films_manage.php">Kelola Film</a></li>
@@ -179,7 +94,6 @@ for ($i = 6; $i >= 0; $i--) {
 
     <!-- CONTENT -->
     <main class="content">
-
         <h1>Dashboard</h1>
         <p class="subtitle">Ringkasan data sistem bioskop</p>
 
@@ -189,36 +103,31 @@ for ($i = 6; $i >= 0; $i--) {
                 <h3>Total Film</h3>
                 <p><?= $totalFilms ?></p>
             </div>
-
             <div class="card">
                 <h3>Total Ruangan</h3>
                 <p><?= $totalRooms ?></p>
             </div>
-
             <div class="card">
                 <h3>Total Jadwal</h3>
                 <p><?= $totalSchedules ?></p>
             </div>
-
             <div class="card">
                 <h3>Total Booking</h3>
                 <p><?= $totalBookings ?></p>
             </div>
         </div>
 
-        <!-- Chart: Booking 7 Hari -->
+        <!-- Charts -->
         <div class="chart-box">
             <h3>Pemesanan 7 Hari Terakhir</h3>
             <canvas id="dailyChart"></canvas>
         </div>
 
-        <!-- Chart: Penonton per Film -->
         <div class="chart-box">
             <h3>Penonton per Film</h3>
             <canvas id="filmChart"></canvas>
         </div>
 
-        <!-- Chart: Genre Pie -->
         <div class="chart-box">
             <h3>Pembagian Genre Film</h3>
             <canvas id="genreChart"></canvas>
@@ -228,52 +137,45 @@ for ($i = 6; $i >= 0; $i--) {
 </div>
 
 <script>
-// ---------- DATA PHP KE JAVASCRIPT ----------
+// DATA PHP KE JAVASCRIPT
 const filmLabels = <?= json_encode(array_column($filmChart, "title")) ?>;
 const filmValues = <?= json_encode(array_column($filmChart, "total")) ?>;
-
 const dailyLabels = <?= json_encode($dailyLabels) ?>;
 const dailyValues = <?= json_encode($dailyValues) ?>;
 
-// 1. Line Chart: Booking 7 Hari
+// Line Chart: Booking 7 Hari
 new Chart(document.getElementById('dailyChart'), {
-    type: 'line',
-    data: {
-        labels: dailyLabels,
-        datasets: [{
-            label: 'Booking',
-            data: dailyValues,
-            borderColor: '#4e5cff',
-            borderWidth: 3,
-            fill: false,
-            tension: 0.3
-        }]
-    }
+    type:'line',
+    data:{ labels:dailyLabels, datasets:[{
+        label:'Booking',
+        data:dailyValues,
+        borderColor:'#4e5cff',
+        borderWidth:2,
+        fill:false,
+        tension:0.3
+    }]},
+    options:{ responsive:true, plugins:{ legend:{ display:false } } }
 });
 
-// 2. Bar Chart: Penonton per Film
+// Bar Chart: Penonton per Film
 new Chart(document.getElementById('filmChart'), {
-    type: 'bar',
-    data: {
-        labels: filmLabels,
-        datasets: [{
-            label: 'Penonton',
-            data: filmValues,
-            backgroundColor: '#4e5cff'
-        }]
-    }
+    type:'bar',
+    data:{ labels:filmLabels, datasets:[{
+        label:'Penonton',
+        data:filmValues,
+        backgroundColor:'#4e5cff'
+    }]},
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
 });
 
-// 3. Pie Chart: Genre Film
+// Pie Chart: Genre Film
 new Chart(document.getElementById('genreChart'), {
-    type: 'pie',
-    data: {
-        labels: ['Action', 'Drama', 'Horror', 'Comedy'],
-        datasets: [{
-            data: [30, 25, 20, 25],
-            backgroundColor: ['#4e5cff','#1abc9c','#e74c3c','#f1c40f']
-        }]
-    }
+    type:'pie',
+    data:{ labels:['Action','Drama','Horror','Comedy'], datasets:[{
+        data:[30,25,20,25],
+        backgroundColor:['#4e5cff','#1abc9c','#e74c3c','#f1c40f']
+    }]},
+    options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
 });
 </script>
 
