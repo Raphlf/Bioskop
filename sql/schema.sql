@@ -65,3 +65,32 @@ CREATE TABLE reservation_seats (
       FOREIGN KEY (reservation_id) REFERENCES reservations(id)
       ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE booking_seats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
+  seat_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_bs_booking
+      FOREIGN KEY (booking_id) REFERENCES bookings(id)
+      ON DELETE CASCADE,
+  CONSTRAINT fk_bs_seat
+      FOREIGN KEY (seat_id) REFERENCES seats(id)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE seats (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  studio_id INT NOT NULL,
+  seat_number VARCHAR(10) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_seats_studio
+      FOREIGN KEY (studio_id) REFERENCES studios(id)
+      ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE studios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

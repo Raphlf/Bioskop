@@ -44,7 +44,7 @@ body {
     max-width: 1100px;
     margin: 120px auto;
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: 1fr 2fr;
     gap: 40px;
     padding: 0 20px;
 }
@@ -121,6 +121,9 @@ footer {
         </div>
 
         <p class="detail-desc"><?= nl2br(esc($film['description'])) ?></p>
+
+        <h3>Sinopsis</h3>
+        <p class="detail-synopsis"><?= nl2br(esc($film['description'])) ?></p>
 
         <h3>Jadwal Tersedia</h3>
 

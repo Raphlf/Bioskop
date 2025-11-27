@@ -4,11 +4,8 @@ require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 
-$stmt = $pdo->query("SELECT s.*, f.title, f.poster
-                     FROM schedules s
-                     JOIN films f ON s.film_id = f.id
-                     ORDER BY s.show_time ASC");
-$jadwal = $stmt->fetchAll();
+$stmt = $pdo->query("SELECT * FROM films ORDER BY created_at DESC");
+$films = $stmt->fetchAll();
 ?>
 
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
@@ -332,16 +329,16 @@ main {
         <div class="section-line"></div>
 
         <div class="movies-grid">
-            <?php $no = 1; foreach ($jadwal as $j): ?>
+            <?php $no = 1; foreach ($films as $f): ?>
                 <article class="movie-card">
                     <div class="movie-number"><?= $no++; ?></div>
-                    <img src="<?= BASE_URL . '/' . esc($j['poster']) ?>" alt="<?= esc($j['title']) ?>">
+                    <img src="<?= BASE_URL . '/' . esc($f['poster']) ?>" alt="<?= esc($f['title']) ?>">
 
                     <div class="movie-overlay">
                         <button type="button">Watch Trailer</button>
 
                         <a class="get-ticket"
-                           href="<?= BASE_URL ?>/reservasi.php?schedule_id=<?= $j['id'] ?>">
+                           href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
                             Get Ticket
                         </a>
                     </div>

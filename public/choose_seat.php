@@ -56,43 +56,60 @@ if (empty($errors)) {
 // ===================== 3. HANDLE POST (pilih kursi) =====================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
 
-    $seat_id = isset($_POST['seat_id']) ? (int)$_POST['seat_id'] : 0;
+    $seat_ids_str = isset($_POST['seat_ids']) ? $_POST['seat_ids'] : '';
+    $seat_ids = $seat_ids_str ? explode(',', $seat_ids_str) : [];
 
-    // cek seat valid & milik studio ini
-    $stmt = $pdo->prepare("SELECT * FROM seats WHERE id = ? AND studio_id = ? LIMIT 1");
-    $stmt->execute([$seat_id, $booking['studio_id']]);
-    $seatRow = $stmt->fetch();
-
-    if (!$seatRow) {
-        $errors[] = "Kursi yang dipilih tidak valid.";
+    if (empty($seat_ids)) {
+        $errors[] = "Pilih setidaknya satu kursi.";
     } else {
-        // cek apakah kursi sudah diambil booking lain
-        $stmt = $pdo->prepare("
-            SELECT 1
-            FROM booking_seats bs
-            JOIN bookings b2 ON bs.booking_id = b2.id
-            WHERE b2.schedule_id = ? AND bs.seat_id = ? AND b2.id != ?
-            LIMIT 1
-        ");
-        $stmt->execute([$booking['schedule_id'], $seat_id, $booking_id]);
-        $already = $stmt->fetchColumn();
+        $validSeats = [];
+        foreach ($seat_ids as $seat_id) {
+            $seat_id = (int)$seat_id;
 
-        if ($already) {
-            $errors[] = "Kursi sudah diambil orang lain.";
+            // cek seat valid & milik studio ini
+            $stmt = $pdo->prepare("SELECT * FROM seats WHERE id = ? AND studio_id = ? LIMIT 1");
+            $stmt->execute([$seat_id, $booking['studio_id']]);
+            $seatRow = $stmt->fetch();
+
+            if (!$seatRow) {
+                $errors[] = "Kursi yang dipilih tidak valid.";
+                break;
+            } else {
+                // cek apakah kursi sudah diambil booking lain
+                $stmt = $pdo->prepare("
+                    SELECT 1
+                    FROM booking_seats bs
+                    JOIN bookings b2 ON bs.booking_id = b2.id
+                    WHERE b2.schedule_id = ? AND bs.seat_id = ? AND b2.id != ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$booking['schedule_id'], $seat_id, $booking_id]);
+                $already = $stmt->fetchColumn();
+
+                if ($already) {
+                    $errors[] = "Kursi sudah diambil orang lain.";
+                    break;
+                }
+            }
+            $validSeats[] = $seat_id;
         }
-    }
 
-    if (empty($errors)) {
-        // simpan kursi ke booking_seats
-        $pdo->prepare("INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)")
-            ->execute([$booking_id, $seat_id]);
+        if (empty($errors)) {
+            $totalPrice = count($validSeats) * $booking['price'];
 
-        // update total_price di bookings (1 tiket)
-        $pdo->prepare("UPDATE bookings SET total_price = ? WHERE id = ?")
-            ->execute([$booking['price'], $booking_id]);
+            // simpan kursi ke booking_seats
+            foreach ($validSeats as $seat_id) {
+                $pdo->prepare("INSERT INTO booking_seats (booking_id, seat_id) VALUES (?, ?)")
+                    ->execute([$booking_id, $seat_id]);
+            }
 
-        header("Location: my_ticket.php");
-        exit;
+            // update total_price di bookings
+            $pdo->prepare("UPDATE bookings SET total_price = ? WHERE id = ?")
+                ->execute([$totalPrice, $booking_id]);
+
+            header("Location: my_ticket.php");
+            exit;
+        }
     }
 }
 
@@ -101,6 +118,8 @@ include __DIR__ . '/../src/templates/header.php';
 
 <style>
 body {
+    margin: 0;
+    padding: 0;
     background:#f1f5f9;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -217,17 +236,26 @@ body {
 </div>
 
 <script>
-let selectedButton = null;
+let selectedSeats = [];
 document.querySelectorAll('.seat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         if (btn.classList.contains('taken')) return;
 
-        if (selectedButton) {
-            selectedButton.classList.remove('selected');
+        const seatId = btn.dataset.seatId;
+        const index = selectedSeats.indexOf(seatId);
+
+        if (index > -1) {
+            // Deselect
+            selectedSeats.splice(index, 1);
+            btn.classList.remove('selected');
+        } else {
+            // Select
+            selectedSeats.push(seatId);
+            btn.classList.add('selected');
         }
-        selectedButton = btn;
-        btn.classList.add('selected');
-        document.getElementById('seat_id').value = btn.dataset.seatId;
+
+        // Update hidden input
+        document.getElementById('seat_ids').value = selectedSeats.join(',');
     });
 });
 </script>
