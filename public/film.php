@@ -2,7 +2,18 @@
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/helpers.php';
 
-$stmt = $pdo->query("SELECT * FROM films ORDER BY created_at DESC");
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$query = "SELECT * FROM films";
+$params = [];
+
+if (!empty($search)) {
+    $query .= " WHERE title LIKE ?";
+    $params[] = '%' . $search . '%';
+}
+
+$query .= " ORDER BY created_at DESC";
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
 $films = $stmt->fetchAll();
 ?>
 
@@ -93,33 +104,136 @@ body {
     display: inline-block;
     margin-bottom: 10px;
 }
+
+/* =========================================================
+   SEARCH BAR SECTION
+   ========================================================= */
+.search-container {
+    max-width: 600px;
+    margin: 0 auto 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.search-container form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    background: #ffffff;
+    color: #374151;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-btn {
+    padding: 14px 24px;
+    background: #6366f1;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.search-btn:hover {
+    background: #4f46e5;
+}
+
+.clear-search {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 12px;
+    transition: color 0.2s ease;
+}
+
+.clear-search:hover {
+    color: #374151;
+}
+
+/* Responsive search */
+@media (max-width: 600px) {
+    .search-container form {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .clear-search {
+        margin-left: 0;
+        align-self: center;
+    }
+}
 </style>
 
 <h2 class="page-title">Daftar Film</h2>
 
+<!-- SEARCH BAR -->
+<div class="search-container">
+    <form method="GET" action="">
+        <input type="text" name="search" placeholder="Cari film berdasarkan judul..." value="<?= esc($search) ?>" class="search-input">
+        <button type="submit" class="search-btn">Cari</button>
+        <?php if (!empty($search)): ?>
+            <a href="<?= BASE_URL ?>/film.php" class="clear-search">Hapus Pencarian</a>
+        <?php endif; ?>
+    </form>
+</div>
+
 <div class="film-list">
 
-<?php foreach($films as $f): ?>
-    <div class="film-card">
-        <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
+<?php if (count($films) == 0): ?>
+    <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 18px; padding: 40px;">
+        <?php if (!empty($search)): ?>
+            Tidak ada film yang ditemukan untuk pencarian "<?= esc($search) ?>".
+        <?php else: ?>
+            Belum ada film tersedia.
+        <?php endif; ?>
+    </p>
+<?php else: ?>
+    <?php foreach($films as $f): ?>
+        <div class="film-card">
+            <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
 
-            <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
-                 alt="<?= esc($f['title']) ?>" 
-                 class="poster">
+                <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
+                     alt="<?= esc($f['title']) ?>" 
+                     class="poster">
 
-            <div class="film-body">
+                <div class="film-body">
 
-                <span class="film-badge">Get Ticket</span>
+                    <span class="film-badge">Get Ticket</span>
 
-                <div class="film-title"><?= esc($f['title']) ?></div>
+                    <div class="film-title"><?= esc($f['title']) ?></div>
 
-                <div class="film-sub">
-                    <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                    <div class="film-sub">
+                        <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                    </div>
                 </div>
-            </div>
-        </a>
-    </div>
-<?php endforeach; ?>
+            </a>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>
 
 </div>
 
