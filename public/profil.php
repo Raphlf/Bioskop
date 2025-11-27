@@ -5,7 +5,7 @@ require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/helpers.php';
 
 if (!is_logged_in()) {
-    header("Location: login.php");
+    header("Location: " . BASE_URL . "/login.php");
     exit;
 }
 
@@ -13,23 +13,40 @@ $user_id = $_SESSION['user']['id'];
 $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
 $user = $stmt->fetch();
-$resv = $pdo->prepare("
-    SELECT COUNT(*) AS total_reservasi
-    FROM reservations 
-    WHERE user_id = ?");
-$resv->execute([$user_id]);
-$stat = $resv->fetch();
 
-$q = $pdo->prepare("
-    SELECT r.*, s.show_date, s.show_time, 
-           f.title, f.poster
-    FROM reservations r
-    JOIN schedules s ON r.schedule_id = s.id
-    JOIN films f ON s.film_id = f.id
-    WHERE r.user_id = ?
-    ORDER BY r.booking_time DESC");
-$q->execute([$user_id]);
-$riwayat_list = $q->fetchAll();
+if (!$user) {
+    // User not found in DB, logout
+    header("Location: " . BASE_URL . "/logout.php");
+    exit;
+}
+
+$stat = ['total_reservasi' => 0];
+try {
+    $resv = $pdo->prepare("
+        SELECT COUNT(*) AS total_reservasi
+        FROM reservations 
+        WHERE user_id = ?");
+    $resv->execute([$user_id]);
+    $stat = $resv->fetch();
+} catch (Exception $e) {
+    // Handle error silently or log
+}
+
+$riwayat_list = [];
+try {
+    $q = $pdo->prepare("
+        SELECT r.*, s.show_date, s.show_time, 
+               f.title, f.poster
+        FROM reservations r
+        JOIN schedules s ON r.schedule_id = s.id
+        JOIN films f ON s.film_id = f.id
+        WHERE r.user_id = ?
+        ORDER BY r.booking_time DESC");
+    $q->execute([$user_id]);
+    $riwayat_list = $q->fetchAll();
+} catch (Exception $e) {
+    // Handle error silently or log
+}
 ?>
 
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
@@ -180,13 +197,19 @@ h2, h3 {
     <p><strong>ID Pengguna:</strong> <?= $user['id'] ?></p>
     <p><strong>Tanggal Buat Akun:</strong> <?= $user['created_at'] ?></p>
     <p><strong>Total Reservasi:</strong> <?= $stat['total_reservasi'] ?></p>
-    <p><strong>Total Kursi Dipesan:</strong> 
-        <?php 
-            // Calculate total seats ordered by user from reservation_seat table
-            $total_kursi_stmt = $pdo->prepare("SELECT COUNT(*) AS total_kursi FROM reservation_seats rs JOIN reservations r ON rs.reservation_id = r.id WHERE r.user_id = ?");
-            $total_kursi_stmt->execute([$user_id]);
-            $total_kursi_row = $total_kursi_stmt->fetch();
-            echo $total_kursi_row ? $total_kursi_row['total_kursi'] : 0;
+    <p><strong>Total Kursi Dipesan:</strong>
+        <?php
+            $total_kursi = 0;
+            try {
+                // Calculate total seats ordered by user from reservation_seat table
+                $total_kursi_stmt = $pdo->prepare("SELECT COUNT(*) AS total_kursi FROM reservation_seats rs JOIN reservations r ON rs.reservation_id = r.id WHERE r.user_id = ?");
+                $total_kursi_stmt->execute([$user_id]);
+                $total_kursi_row = $total_kursi_stmt->fetch();
+                $total_kursi = $total_kursi_row ? $total_kursi_row['total_kursi'] : 0;
+            } catch (Exception $e) {
+                // Handle error silently
+            }
+            echo $total_kursi;
         ?>
     </p>
 
