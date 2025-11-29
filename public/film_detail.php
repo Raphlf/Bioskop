@@ -159,7 +159,7 @@ footer {
                                 Harga: Rp<?= number_format($j['price'],0,',','.') ?>
                             </div>
 
-                            <form method="GET" action="<?= BASE_URL ?>/reservasi.php">
+                            <form method="GET" action="<?= BASE_URL ?>/choose_seat.php">
                                 <input type="hidden" name="schedule_id" value="<?= $j['id'] ?>">
                                 <button type="submit">Pesan</button>
                             </form>

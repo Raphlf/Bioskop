@@ -6,9 +6,7 @@ require_once __DIR__ . '/../src/helpers.php';
 require_login();
 $user = $_SESSION['user'];
 
-// ===============================
-//  Ambil data tiket user (BOOKINGS BARU)
-// ===============================
+// Ambil semua booking user yang sudah CONFIRMED (sudah bayar)
 $stmt = $pdo->prepare("
     SELECT b.*, 
            s.show_time,
@@ -21,6 +19,7 @@ $stmt = $pdo->prepare("
     JOIN films f ON s.film_id = f.id
     JOIN studios st ON s.studio_id = st.id
     WHERE b.user_id = ?
+      AND b.status = 'confirmed'
     ORDER BY b.created_at DESC
 ");
 $stmt->execute([$user['id']]);
@@ -30,7 +29,6 @@ include __DIR__ . '/../src/templates/header.php';
 ?>
 
 <style>
-/* ====== Global + Footer fix ====== */
 html, body {
     height: 100%;
     margin: 0;
@@ -43,14 +41,10 @@ html, body {
 .content-area {
     flex: 1;
 }
-
-/* ====== Theme ====== */
 body {
     background: #fafafa;
     font-family: system-ui, "Segoe UI", sans-serif;
-    color: #1f2937;
 }
-
 .page-title {
     text-align: center;
     margin: 110px 0 26px;
@@ -58,8 +52,6 @@ body {
     font-weight: 800;
     color: #b8962f;
 }
-
-/* ====== Ticket List ====== */
 .ticket-list {
     max-width: 820px;
     margin: 0 auto 80px;
@@ -67,7 +59,6 @@ body {
     flex-direction: column;
     gap: 22px;
 }
-
 .ticket-card {
     background: #fff;
     border-radius: 20px;
@@ -75,8 +66,6 @@ body {
     overflow: hidden;
     border: 1px solid #e5e7eb;
 }
-
-/* TOP */
 .ticket-top {
     display: flex;
     justify-content: space-between;
@@ -96,14 +85,10 @@ body {
     font-size: 14px;
     color: #6b7280;
 }
-
-/* Poster */
 .ticket-poster img {
     width: 80px;
     border-radius: 8px;
 }
-
-/* BOTTOM */
 .ticket-bottom {
     display: flex;
     justify-content: space-between;
@@ -118,8 +103,6 @@ body {
     font-weight: 700;
     color: #b8962f;
 }
-
-/* Empty */
 .empty-text {
     margin-top: 70px;
     text-align: center;
@@ -127,7 +110,6 @@ body {
     font-size: 17px;
 }
 </style>
-
 
 <div class="page-wrapper">
 <div class="content-area">
@@ -142,60 +124,60 @@ body {
 
 <?php foreach ($bookings as $b): ?>
 
-    <?php
-        // ambil kursi dari booking_seats
-        $seatStmt = $pdo->prepare("
-            SELECT seat_number 
-            FROM booking_seats bs
-            JOIN seats s ON s.id = bs.seat_id
-            WHERE bs.booking_id = ?
-        ");
-        $seatStmt->execute([$b['id']]);
-        $seatList = $seatStmt->fetchAll(PDO::FETCH_COLUMN);
+<?php
+// Ambil kursi berdasarkan booking_id
+$seatStmt = $pdo->prepare("
+    SELECT seat_number 
+    FROM booking_seats bs
+    JOIN seats s ON s.id = bs.seat_id
+    WHERE bs.booking_id = ?
+");
+$seatStmt->execute([$b['id']]);
+$seats = $seatStmt->fetchAll(PDO::FETCH_COLUMN);
 
-        $seatText = implode(", ", $seatList);
-        $seatCount = count($seatList);
-    ?>
+$seatCount = count($seats);
+$seatText  = implode(", ", $seats);
+?>
 
-    <div class="ticket-card">
+<div class="ticket-card">
 
-        <div class="ticket-top">
-            <div class="ticket-info">
-                <div class="ticket-title"><?= esc($b['title']) ?></div>
+    <div class="ticket-top">
+        <div class="ticket-info">
+            <div class="ticket-title"><?= esc($b['title']) ?></div>
 
-                <div class="ticket-meta">
-                    <?= date("d M Y", strtotime($b['show_time'])) ?>
-                    – <?= date("H:i", strtotime($b['show_time'])) ?>
-                </div>
-
-                <div class="ticket-meta">
-                    Studio: <?= esc($b['studio_name']) ?>
-                </div>
+            <div class="ticket-meta">
+                <?= date("d M Y", strtotime($b['show_time'])) ?> – 
+                <?= date("H:i", strtotime($b['show_time'])) ?>
             </div>
 
-            <div class="ticket-poster">
-                <img src="<?= BASE_URL . '/' . esc($b['poster']) ?>">
+            <div class="ticket-meta">
+                Studio: <?= esc($b['studio_name']) ?>
             </div>
         </div>
 
-        <div class="ticket-bottom">
-            <div>
-                <div class="tb-label">Jumlah Tiket</div>
-                <div class="tb-value"><?= $seatCount ?> Orang</div>
-            </div>
-
-            <div>
-                <div class="tb-label">Kursi</div>
-                <div class="tb-value"><?= $seatCount > 0 ? $seatText : "-" ?></div>
-            </div>
-
-            <div>
-                <div class="tb-label">Kode</div>
-                <div class="tb-value">#<?= $b['id'] ?></div>
-            </div>
+        <div class="ticket-poster">
+            <img src="<?= BASE_URL . '/' . esc($b['poster']) ?>">
         </div>
-
     </div>
+
+    <div class="ticket-bottom">
+        <div>
+            <div class="tb-label">Jumlah Tiket</div>
+            <div class="tb-value"><?= $seatCount ?> Orang</div>
+        </div>
+
+        <div>
+            <div class="tb-label">Kursi</div>
+            <div class="tb-value"><?= $seatText ?></div>
+        </div>
+
+        <div>
+            <div class="tb-label">Kode</div>
+            <div class="tb-value">#<?= $b['id'] ?></div>
+        </div>
+    </div>
+
+</div>
 
 <?php endforeach; ?>
 

@@ -4,370 +4,232 @@ require_once __DIR__ . '/../src/auth.php';
 require_once __DIR__ . '/../src/helpers.php';
 
 require_login();
+$user = $_SESSION['user'];
 
-$user   = $_SESSION['user'];
-$errors = [];
-
-// ===================== 1. Ambil booking =====================
-$booking_id = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
-
-if ($booking_id <= 0) {
-    $errors[] = "Booking ID tidak ditemukan.";
-    $booking  = null;
-} else {
-    $stmt = $pdo->prepare("
-        SELECT b.*, s.show_time, s.price, s.studio_id,
-               f.title, st.name AS studio_name
-        FROM bookings b
-        JOIN schedules s ON b.schedule_id = s.id
-        JOIN films f     ON s.film_id     = f.id
-        JOIN studios st  ON s.studio_id   = st.id
-        WHERE b.id = ? AND b.user_id = ?
-        LIMIT 1
-    ");
-    $stmt->execute([$booking_id, $user['id']]);
-    $booking = $stmt->fetch();
-
-    if (!$booking) {
-        $errors[] = "Booking tidak ditemukan atau bukan milikmu.";
-    }
+if (!isset($_GET['schedule_id'])) {
+    echo "Booking tidak valid.";
+    exit;
 }
 
-// ===================== 2. Ambil kursi & kursi terpakai =====================
-$seats       = [];
-$takenSeats  = [];
+$schedule_id = (int)$_GET['schedule_id'];
 
-if (empty($errors)) {
+// AMBIL DATA JADWAL
+$stmt = $pdo->prepare("
+    SELECT s.*, f.title, f.poster, st.name AS studio_name
+    FROM schedules s
+    JOIN films f ON s.film_id = f.id
+    JOIN studios st ON s.studio_id = st.id
+    WHERE s.id = ?
+");
+$stmt->execute([$schedule_id]);
+$schedule = $stmt->fetch();
 
-    // semua kursi di studio ini
-    $stmt = $pdo->prepare("SELECT * FROM seats WHERE studio_id = ? ORDER BY id");
-    $stmt->execute([$booking['studio_id']]);
-    $seats = $stmt->fetchAll();
-
-    // kursi yang sudah diambil booking lain
-    $stmt = $pdo->prepare("
-        SELECT bs.seat_id
-        FROM booking_seats bs
-        JOIN bookings b2 ON bs.booking_id = b2.id
-        WHERE b2.schedule_id = ? AND b2.id != ?
-    ");
-    $stmt->execute([$booking['schedule_id'], $booking_id]);
-    $takenSeats = $stmt->fetchAll(PDO::FETCH_COLUMN);
+if (!$schedule) {
+    echo "Jadwal tidak ditemukan.";
+    exit;
 }
 
-// ===================== 3. HANDLE POST =====================
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
+// AMBIL DAFTAR KURSI
+$seatStmt = $pdo->prepare("
+    SELECT id, seat_number 
+    FROM seats 
+    WHERE studio_id = ?
+    ORDER BY seat_number ASC
+");
+$seatStmt->execute([$schedule['studio_id']]);
+$seats = $seatStmt->fetchAll();
 
-    $seat_ids_str = isset($_POST['seat_ids']) ? trim($_POST['seat_ids']) : '';
-    $seat_ids = $seat_ids_str ? explode(',', $seat_ids_str) : [];
-
-    $MAX_SEATS = 5;
-
-    if (empty($seat_ids)) {
-        $errors[] = "Pilih setidaknya satu kursi.";
-    } elseif (count($seat_ids) > $MAX_SEATS) {
-        $errors[] = "Maksimal pilih {$MAX_SEATS} kursi.";
-    } else {
-
-        $validSeats = [];
-
-        foreach ($seat_ids as $seat_id) {
-            $seat_id = (int)$seat_id;
-
-            // cek seat valid & milik studio ini
-            $stmt = $pdo->prepare("SELECT 1 FROM seats WHERE id = ? AND studio_id = ? LIMIT 1");
-            $stmt->execute([$seat_id, $booking['studio_id']]);
-            $seatValid = $stmt->fetchColumn();
-
-            if (!$seatValid) {
-                $errors[] = "Ada kursi yang tidak valid.";
-                break;
-            }
-
-            // cek apakah kursi sudah diambil
-            $stmt = $pdo->prepare("
-                SELECT 1
-                FROM booking_seats bs
-                JOIN bookings b2 ON bs.booking_id = b2.id
-                WHERE b2.schedule_id = ? 
-                  AND bs.seat_id = ? 
-                  AND b2.id != ?
-                LIMIT 1
-            ");
-            $stmt->execute([$booking['schedule_id'], $seat_id, $booking_id]);
-
-            if ($stmt->fetchColumn()) {
-                $errors[] = "Salah satu kursi sudah diambil orang lain.";
-                break;
-            }
-
-            $validSeats[] = $seat_id;
-        }
-
-        if (empty($errors)) {
-
-            $pdo->beginTransaction();
-
-            try {
-
-                // Hapus kursi lama dulu (kalau ada)
-                $pdo->prepare("DELETE FROM booking_seats WHERE booking_id = ?")
-                    ->execute([$booking_id]);
-
-                // Simpan yang baru
-                foreach ($validSeats as $seat_id) {
-                    $pdo->prepare("
-                        INSERT INTO booking_seats (booking_id, seat_id)
-                        VALUES (?, ?)
-                    ")->execute([$booking_id, $seat_id]);
-                }
-
-                // Update total harga
-                $totalPrice = count($validSeats) * $booking['price'];
-
-                $pdo->prepare("
-                    UPDATE bookings 
-                    SET total_price = ? 
-                    WHERE id = ?
-                ")->execute([$totalPrice, $booking_id]);
-
-                $pdo->commit();
-
-                header("Location: my_ticket.php");
-                exit;
-
-            } catch (Exception $e) {
-                $pdo->rollBack();
-                $errors[] = "Terjadi kesalahan saat menyimpan kursi.";
-            }
-        }
-    }
-}
+// KURSI TERSISIH (SUDAH DIBOOKING)
+$bookedStmt = $pdo->prepare("
+    SELECT seat_id 
+    FROM booking_seats bs
+    JOIN bookings b ON b.id = bs.booking_id
+    WHERE b.schedule_id = ? 
+      AND b.status = 'confirmed'
+");
+$bookedStmt->execute([$schedule_id]);
+$bookedSeats = $bookedStmt->fetchAll(PDO::FETCH_COLUMN);
 
 include __DIR__ . '/../src/templates/header.php';
 ?>
 
 <style>
-html {
-    /* 1. Pastikan HTML mengambil seluruh tinggi viewport */
-    height: 100%;
-}
-body {
-    display: flex;
-    flex-direction: column; /* Susun elemen ke bawah */
-    min-height: 100vh;      /* Minimal setinggi jendela browser */
-    margin: 0;
-    padding: 0;
-    background:#f1f5f9;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
+/* desain kamu utuh */
+body { background: #f3f4f6; margin: 0; padding: 0; }
 .seat-wrapper {
-    max-width:900px;
-    margin:110px auto 50px;
-    text-align:center;
-    flex: 1;
-}
-
-.seat-title {
-    font-size:24px;
-    font-weight:800;
-    margin-bottom:6px;
-}
-
-.seat-sub {
-    color:#64748b;
-    margin-bottom:20px;
-}
-
-.seat-errors {
-    background:#fee2e2;
-    color:#991b1b;
-    padding:10px;
-    border-radius:8px;
-    margin-bottom:15px;
-}
-
-.screen-bar {
-    width:60%;
-    margin:0 auto 20px;
-    padding:10px;
-    background:#111827;
-    color:white;
-    border-radius:10px;
-    font-weight:600;
-}
-
-.seat-grid {
-    display:grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap:8px;
-    justify-content:center;
-    width:60%;
-    margin:0 auto 20px;
-}
-
-.seat-btn {
-    padding: 10px 0;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
+    max-width: 750px;
+    margin: 100px auto;
     background: white;
-    cursor: pointer;
-    font-size: 13px;
-    transition: .2s ease;
-    /* Tambahkan ini */
-    min-width: 55px; /* Sesuaikan nilai ini sesuai keinginan Anda */
-    height: 35px; /* Opsional: buat tinggi dan lebarnya sama untuk tombol persegi */
-    display: flex; /* Untuk menengahkan teks jika ada padding horizontal */
-    align-items: center;
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+.seat-title { font-size: 28px; font-weight: 800; text-align: center; margin-bottom: 5px; }
+.seat-subtitle { text-align: center; color: #6b7280; margin-bottom: 25px; }
+.screen-box {
+    width: 60%; margin: 0 auto 30px; padding: 12px;
+    background: #111827; color: white; font-weight: 700; border-radius: 8px; text-align: center;
+}
+.seat-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 10px;
+    padding: 10px;
+    justify-items: center;
+}
+.seat {
+    width: 48px; height: 38px; background: #e5e7eb; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-weight: 600;
+}
+.seat.selected { background: #2563eb; color: white; }
+.seat.booked { background: #9ca3af; cursor: not-allowed; color: white; }
+.total-info { text-align: center; margin-top: 20px; font-weight: 600; }
+.btn-primary {
+    display: block; width: 200px; margin: 25px auto 10px; text-align: center;
+    padding: 12px; background: #2563eb; border-radius: 12px;
+    color: white; font-weight: 700; border: none; cursor: pointer;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-cancel {
+    display: block; width: 160px; margin: 10px auto;
+    text-align: center; padding: 10px; background: #dc2626;
+    border-radius: 12px; color: white; font-weight: 600; border: none; cursor: pointer;
+}
+.btn-cancel:hover { background: #b91c1c; }
+
+/* POPUP */
+.popup-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
     justify-content: center;
-    transition: ease .2s;
+    align-items: center;
+    z-index: 99;
 }
-
-.seat-btn:hover {
-    transform: scale(1.05);
+.popup-box {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 14px;
+    text-align: center;
+    width: 330px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
 }
-
-.seat-btn.taken {
-    background:#e5e7eb;
-    color:#9ca3af;
-    cursor:not-allowed;
+.popup-box h3 { margin-bottom: 10px; font-size: 20px; font-weight: 700; }
+.popup-box p { color: #555; margin-bottom: 20px; }
+.popup-btn {
+    padding: 10px 20px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
 }
-
-.seat-btn.selected {
-    background:#2563eb;
-    color:white;
-    border-color:#1d4ed8;
-}
-
-.summary-box {
-    margin-top:10px;
-    font-size:14px;
-    color:#334155;
-}
-
-.submit-btn {
-    margin-top:20px;
-    padding:12px 25px;
-    border:none;
-    border-radius:999px;
-    background:#2563eb;
-    color:white;
-    font-weight:600;
-    cursor:pointer;
-    font-size:15px;
-}
-
-.submit-btn:hover {
-    background:#1e40af;
-}
-
+.popup-btn:hover { background: #1d4ed8; }
 </style>
 
 <div class="seat-wrapper">
 
-<?php if (!empty($errors)): ?>
-    <div class="seat-errors"><?= implode('<br>', array_map('esc', $errors)); ?></div>
-<?php endif; ?>
-
-<?php if ($booking): ?>
-
     <div class="seat-title">Pilih Kursi</div>
-    <div class="seat-sub">
-        <?= esc($booking['title']) ?> —
-        <?= date('d M Y H:i', strtotime($booking['show_time'])) ?> —
-        <?= esc($booking['studio_name']) ?>
+    <div class="seat-subtitle">
+        <?= esc($schedule['title']) ?> — 
+        <?= date("d M Y H:i", strtotime($schedule['show_time'])) ?> —
+        <?= esc($schedule['studio_name']) ?>
     </div>
 
-    <div class="screen-bar">LAYAR</div>
+    <div class="screen-box">LAYAR</div>
 
-    <form method="POST" onsubmit="return validateSeats()">
+    <div class="seat-grid">
+        <?php foreach ($seats as $s):
+            $booked = in_array($s['id'], $bookedSeats);
+        ?>
+            <div 
+                class="seat <?= $booked ? 'booked' : '' ?>" 
+                data-id="<?= $s['id'] ?>"
+                data-number="<?= $s['seat_number'] ?>"
+            >
+                <?= $s['seat_number'] ?>
+            </div>
+        <?php endforeach; ?>
+    </div>
 
-        <div class="seat-grid">
-            <?php foreach ($seats as $seat): ?>
-                <?php
-                    $isTaken = in_array($seat['id'], $takenSeats);
-                    $classes = "seat-btn" . ($isTaken ? " taken" : "");
-                ?>
-                <button type="button"
-                        class="<?= $classes ?>"
-                        data-seat-id="<?= $seat['id'] ?>"
-                        <?= $isTaken ? "disabled" : "" ?>>
-                    <?= esc($seat['seat_number']) ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
+    <div class="total-info">
+        Kursi dipilih: <span id="count">0</span> | Total: Rp <span id="total">0</span>
+    </div>
 
-        <div class="summary-box">
-            <strong>Kursi dipilih:</strong>
-            <span id="seatCount">0</span> |
-            <strong>Total:</strong> Rp <span id="totalPrice">0</span>
-        </div>
+    <form id="seatForm" method="POST" action="payment.php">
+        <input type="hidden" name="schedule_id" value="<?= $schedule_id ?>">
+        <div id="seatsContainer"></div>
 
-        <input type="hidden" name="seat_ids" id="seat_ids">
-
-        <button class="submit-btn">Simpan Kursi</button>
-
+        <button type="submit" class="btn-primary" id="payBtn">Lanjut Pembayaran</button>
     </form>
 
-<?php else: ?>
-    <p>Booking tidak ditemukan.</p>
-<?php endif; ?>
+    <a href="index.php">
+        <button class="btn-cancel">Cancel</button>
+    </a>
 
 </div>
 
+<!-- POPUP -->
+<div class="popup-bg" id="popup">
+    <div class="popup-box">
+        <h3>Pilih Kursi Dulu!</h3>
+        <p>Kamu harus memilih minimal 1 kursi sebelum lanjut pembayaran.</p>
+        <button class="popup-btn" id="closePopup">OK</button>
+    </div>
+</div>
+
 <script>
-
-const MAX_SEAT = 5;
-const price = <?= (int)$booking['price']; ?>;
-
 let selectedSeats = [];
+const seatEls = document.querySelectorAll(".seat:not(.booked)");
+const seatsContainer = document.getElementById("seatsContainer");
+const price = <?= $schedule['price'] ?>;
 
-const seatCount = document.getElementById('seatCount');
-const totalPrice = document.getElementById('totalPrice');
+seatEls.forEach(seat => {
+    seat.addEventListener("click", () => {
+        const id = seat.dataset.id;
+        const number = seat.dataset.number;
 
-function updateSummary() {
-    seatCount.innerText = selectedSeats.length;
-    totalPrice.innerText = selectedSeats.length * price;
-    document.getElementById('seat_ids').value = selectedSeats.join(',');
-}
+        seat.classList.toggle("selected");
 
-document.querySelectorAll('.seat-btn').forEach(btn => {
-
-    if (btn.classList.contains('taken')) return;
-
-    btn.addEventListener('click', function () {
-
-        const seatId = this.dataset.seatId;
-        const index  = selectedSeats.indexOf(seatId);
-
-        if (index > -1) {
-            selectedSeats.splice(index, 1);
-            this.classList.remove('selected');
+        if (selectedSeats.find(s => s.id === id)) {
+            selectedSeats = selectedSeats.filter(s => s.id !== id);
         } else {
-
-            if (selectedSeats.length >= MAX_SEAT) {
-                alert('Maksimal pilih ' + MAX_SEAT + ' kursi');
-                return;
-            }
-
-            selectedSeats.push(seatId);
-            this.classList.add('selected');
+            selectedSeats.push({ id, number });
         }
 
-        updateSummary();
-
+        renderSeats();
     });
 });
 
-function validateSeats() {
-    if (selectedSeats.length === 0) {
-        alert('Pilih setidaknya 1 kursi dulu.');
-        return false;
-    }
-    return true;
+function renderSeats() {
+    seatsContainer.innerHTML = "";
+    selectedSeats.forEach(s => {
+        let input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "seats[]";
+        input.value = s.id;
+        seatsContainer.appendChild(input);
+    });
+
+    document.getElementById("count").innerText = selectedSeats.length;
+    document.getElementById("total").innerText = (selectedSeats.length * price).toLocaleString();
 }
 
+// PROTEKSI: tidak boleh submit jika tidak pilih kursi
+document.getElementById("seatForm").addEventListener("submit", function(e) {
+    if (selectedSeats.length === 0) {
+        e.preventDefault();
+        document.getElementById("popup").style.display = "flex";
+    }
+});
+
+// CLOSE POPUP
+document.getElementById("closePopup").addEventListener("click", () => {
+    document.getElementById("popup").style.display = "none";
+});
 </script>
 
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
