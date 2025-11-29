@@ -24,236 +24,226 @@ $films = $stmt->fetchAll();
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
 
 <style>
-/* ===================== GLOBAL ===================== */
-/* Penyesuaian Body untuk Sticky Footer */
-body {
-    background: #f8fafb;
+/* ===================================================
+   GLOBAL — agar footer selalu di bawah
+=================================================== */
+html, body {
+    height: 100%;
     margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    color: #111827;
-    
-    /* === STICKY FOOTER FIX === */
-    min-height: 100vh; /* Minimal tinggi viewport */
-    display: flex;
-    flex-direction: column;
 }
-/* Wrapper untuk semua konten (kecuali header/footer yang di-include) */
-#content-wrapper {
-    flex: 1; /* Konten akan mengisi semua ruang yang tersisa */
+body {
     display: flex;
     flex-direction: column;
-    padding-top: 90px; /* Jarak untuk navbar fixed */
+    background: #f5f6fa;
+    font-family: "Inter", system-ui, sans-serif;
+}
+#content-wrapper {
+    flex: 1; /* biar footer turun */
+    padding-top: 110px;
+    max-width: 1180px;
+    width: 92%;
+    margin: auto;
 }
 
-/* ===================== TITLE ===================== */
+/* ===================================================
+   TITLE
+=================================================== */
 .page-title {
     text-align: center;
-    margin: 40px 0 30px; /* Sesuaikan margin atas karena ada padding-top di wrapper */
     font-size: 32px;
     font-weight: 800;
-    color: #1f2937;
+    margin-bottom: 40px;
 }
 
-/* ===================== GRID ===================== */
-.film-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 26px;
-    max-width: 1180px;
-    width: 90%;
-    margin: 0 auto 80px;
-}
+/* ===================================================
+   SEARCH BAR — Clean TIX ID Style
+=================================================== */
 
-/* ===================== CARD FIX CLICK ===================== */
-.film-card {
-    background: #ffffff;
-    border-radius: 18px;
-    overflow: hidden;
-    text-align: center;
-    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-    transition: transform .2s ease, box-shadow .2s ease;
-    position: relative;
-}
-.film-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 30px rgba(0,0,0,0.12);
-}
-
-.film-card a {
-    display: block;
-    width: 100%;
-    height: 100%;
-    color: inherit;
-    text-decoration: none;
-}
-
-/* Poster */
-.poster {
-    width: 100%;
-    aspect-ratio: 2/3;
-    object-fit: cover;
-}
-
-/* Body */
-.film-body {
-    padding: 14px 16px 20px;
-}
-.film-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 6px;
-}
-.film-sub {
-    font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 10px;
-}
-
-/* Badge */
-.film-badge {
-    background: #33aa77;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 10px;
-}
-
-/* =========================================================
-    SEARCH BAR SECTION
-    ========================================================= */
 .search-container {
-    max-width: 600px;
-    margin: 0 auto 40px;
-    display: flex;
-    justify-content: center;
+    max-width: 650px;
+    margin: 0 auto 45px;
 }
 
-.search-container form {
+.search-box {
     display: flex;
-    gap: 12px;
     align-items: center;
-    width: 100%;
-    max-width: 500px;
+    gap: 10px;
 }
 
 .search-input {
     flex: 1;
-    padding: 14px 18px;
-    border: 2px solid #d1d5db;
+    padding: 14px 48px 14px 18px;
     border-radius: 12px;
+    border: 2px solid #d1d5db;
     font-size: 16px;
-    font-family: inherit;
-    background: #ffffff;
-    color: #374151;
-    transition: border-color 0.2s ease;
+    transition: .2s;
+    background: #fff;
 }
 
 .search-input:focus {
-    outline: none;
     border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    outline: none;
 }
 
+/* Tombol X */
+.clear-x {
+    position: relative;
+    margin-left: -40px;
+    margin-right: 5px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #9ca3af;
+    display: none;
+}
+
+/* Tombol Cari */
 .search-btn {
-    padding: 14px 24px;
-    background: #6366f1;
-    color: #ffffff;
-    border: none;
+    padding: 14px 28px;
     border-radius: 12px;
-    font-size: 16px;
+    border: none;
+    background: #6366f1;
+    color: white;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: .2s;
+    font-size: 16px;
 }
 
 .search-btn:hover {
     background: #4f46e5;
 }
 
-.clear-search {
-    color: #6b7280;
-    text-decoration: none;
+/* ===================================================
+   GRID FILM
+=================================================== */
+
+.film-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 26px;
+    margin-bottom: 80px;
+}
+
+.film-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    transition: .25s ease;
+}
+
+.film-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 34px rgba(0,0,0,.12);
+}
+
+.poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+}
+
+.film-body {
+    padding: 14px;
+    text-align: center;
+}
+
+.film-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.film-sub {
     font-size: 14px;
-    font-weight: 500;
-    margin-left: 12px;
-    transition: color 0.2s ease;
+    color: #6b7280;
 }
 
-.clear-search:hover {
-    color: #374151;
-}
-
-/* Responsive search */
+/* Responsive */
 @media (max-width: 600px) {
-    .search-container form {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .search-input {
-        width: 100%;
-    }
-
-    .clear-search {
-        margin-left: 0;
-        align-self: center;
-    }
+    .search-box { flex-direction: column; }
+    .search-btn { width: 100%; }
+    .clear-x { margin-left: -30px; }
 }
 </style>
+
 
 <div id="content-wrapper">
 
     <h2 class="page-title">Daftar Film</h2>
 
+    <!-- ==================== SEARCH BAR ==================== -->
     <div class="search-container">
         <form method="GET" action="">
-            <input type="text" name="search" placeholder="Cari film berdasarkan judul..." value="<?= esc($search) ?>" class="search-input">
-            <button type="submit" class="search-btn">Cari</button>
-            <?php if (!empty($search)): ?>
-                <a href="<?= BASE_URL ?>/film.php" class="clear-search">Hapus Pencarian</a>
-            <?php endif; ?>
+            <div class="search-box">
+
+                <input type="text" 
+                       name="search" 
+                       id="searchInput"
+                       placeholder="Cari film berdasarkan judul..." 
+                       value="<?= esc($search) ?>"
+                       class="search-input">
+
+                <!-- X -->
+                <span id="clearSearch" class="clear-x">&times;</span>
+
+                <!-- Tombol cari -->
+                <button type="submit" class="search-btn">Cari</button>
+
+            </div>
         </form>
     </div>
 
+    <!-- ==================== LIST FILM ==================== -->
     <div class="film-list">
 
-    <?php if (count($films) == 0): ?>
-        <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 18px; padding: 40px;">
-            <?php if (!empty($search)): ?>
-                Tidak ada film yang ditemukan untuk pencarian "<?= esc($search) ?>".
-            <?php else: ?>
-                Belum ada film tersedia.
-            <?php endif; ?>
-        </p>
-    <?php else: ?>
-        <?php foreach($films as $f): ?>
-            <div class="film-card">
-                <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
+        <?php if (count($films) == 0): ?>
+            <p style="grid-column:1/-1; text-align:center; color:#6b7280; font-size:18px; padding:30px;">
+                Film '<?= esc($search) ?>' tidak ditemukan.
+            </p>
+        <?php else: ?>
+            <?php foreach ($films as $f): ?>
+                <div class="film-card" onclick="location.href='<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>'">
 
-                    <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
-                        alt="<?= esc($f['title']) ?>" 
-                        class="poster">
+                    <img src="<?= BASE_URL ?>/assets/uploads/<?= esc($f['poster']) ?>" 
+                         class="poster"
+                         alt="<?= esc($f['title']) ?>">
 
                     <div class="film-body">
-
-                        <span class="film-badge">Get Ticket</span>
-
                         <div class="film-title"><?= esc($f['title']) ?></div>
-
                         <div class="film-sub">
                             <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
                         </div>
                     </div>
-                </a>
-            </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
+
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
 
     </div>
-
 </div>
+
+
+<!-- ==================== JS SEARCH ==================== -->
+<script>
+const input = document.getElementById("searchInput");
+const clearBtn = document.getElementById("clearSearch");
+
+function toggleClear() {
+    clearBtn.style.display = input.value.length > 0 ? "block" : "none";
+}
+
+toggleClear();
+
+input.addEventListener("input", toggleClear);
+
+clearBtn.addEventListener("click", () => {
+    input.value = "";
+    clearBtn.style.display = "none";
+    input.form.submit();
+});
+</script>
+
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>

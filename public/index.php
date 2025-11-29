@@ -4,6 +4,7 @@ require_once __DIR__ . '/../src/config.php';
 require_once __DIR__ . '/../src/helpers.php';
 require_once __DIR__ . '/../src/auth.php';
 
+/* Ambil semua film */
 $stmt = $pdo->query("SELECT * FROM films ORDER BY created_at DESC");
 $films = $stmt->fetchAll();
 ?>
@@ -11,44 +12,28 @@ $films = $stmt->fetchAll();
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
 
 <style>
-/* =========================================================
-   GLOBAL STYLES
-   ========================================================= */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
 
+/* ======================
+   GLOBAL
+====================== */
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
     background: #ffffff;
-    color: #111827;
 }
 
-main {
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-}
+/* ======================
+   HERO SLIDER
+====================== */
 
-/* =========================================================
-   HERO SLIDER + SHADOW
-   ========================================================= */
-.hero-wrapper {
-    margin-top: 120px !important; /* memberi jarak dari navbar */
-}
+.hero-wrapper { margin-top: 120px; }
 
 .hero-slider {
     position: relative;
     width: 100%;
     height: 420px;
     overflow: hidden;
-    border-radius: 0;
-
-    /* Soft Shadow Above Slider */
-    box-shadow: 0px -26px 45px rgba(0, 0, 0, 0.14);
+    box-shadow: 0px -26px 45px rgba(0,0,0,0.15);
 }
 
 .hero-slide {
@@ -57,316 +42,244 @@ main {
     background-size: cover;
     background-position: center;
     opacity: 0;
-    transition: opacity 0.8s ease-in-out;
+    transition: opacity .7s ease;
 }
 
-.hero-slide.active {
-    opacity: 1;
-}
+.hero-slide.active { opacity: 1; }
 
-/* Overlay text */
 .hero-overlay {
     position: absolute;
     inset: 0;
-    padding: 32px 64px;
+    padding: 40px 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    color: #ffffff;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.7);
-}
-
-.hero-tag {
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.hero-title {
-    font-size: 48px;
-    font-weight: 900;
-    line-height: 1.05;
-}
-.hero-title span {
-    color: #ef4444;
-}
-
-.hero-sub {
-    margin-top: 18px;
-    font-size: 16px;
-    max-width: 420px;
-}
-
-.hero-cta {
-    margin-top: 22px;
+    color: white;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
 }
 
 .hero-btn {
-    display: inline-block;
-    padding: 12px 28px;
-    border-radius: 999px;
+    margin-top: 20px;
+    padding: 12px 26px;
     background: #16a34a;
-    color: #ffffff;
-    text-decoration: none;
+    color: #fff;
+    border-radius: 999px;
     font-weight: 700;
-    font-size: 16px;
-    box-shadow: 0 8px 24px rgba(22,163,74,0.5);
+    width: fit-content;
+    box-shadow: 0 6px 20px rgba(22,163,74,0.4);
+    transition: .25s;
 }
 
 .hero-btn:hover {
-    background: #15803d;
+    background: #128a3f;
+    transform: translateY(-3px);
 }
 
-/* Slider navigation */
 .hero-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
     border: none;
-    background: rgba(15,23,42,0.6);
-    color: #ffffff;
-    width: 32px;
-    height: 32px;
+    background: rgba(0,0,0,0.45);
+    color: white;
     border-radius: 999px;
     cursor: pointer;
-    font-size: 18px;
     z-index: 20;
 }
+.hero-nav.prev { left: 14px; }
+.hero-nav.next { right: 14px; }
 
-.hero-nav.prev { left: 12px; }
-.hero-nav.next { right: 12px; }
+/* ======================
+   MOVIE SECTION
+====================== */
 
-/* Responsive slider */
-@media (max-width: 768px) {
-    .hero-slider {
-        height: 320px;
-    }
-
-    .hero-overlay {
-        padding: 20px;
-    }
-
-    .hero-title {
-        font-size: 34px;
-    }
-}
-
-/* =========================================================
-   MOVIE SELECTION SECTION
-   ========================================================= */
 .section-heading {
+    margin-top: 50px;
     text-align: center;
-    font-size: 30px;
+    font-size: 32px;
     font-weight: 800;
-    margin: 50px 0 8px;
-    letter-spacing: 0.12em;
-    color: #0f172a;
+    letter-spacing: .08em;
 }
 
 .section-line {
     width: 85%;
-    max-width: 800px;
-    margin: 0 auto 30px;
-    border-top: 2px solid #11182710;
+    max-width: 850px;
+    margin: 12px auto 40px;
+    border-top: 3px solid #ddd; /* agak tebal */
 }
 
-/* Grid */
 .movies-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 28px;
-    margin-bottom: 50px;
-    padding: 0 80px;
+    gap: 18px;
+    padding: 0 40px 60px;
+    justify-items: center;
 }
 
-/* Card Film */
 .movie-card {
-    position: relative;
-    border-radius: 20px;
+    width: 220px; /* ukuran kecil ala film.php */
+    background: white;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    position: relative;
     cursor: pointer;
-    transition: 0.25s ease;
-    background: #fff;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    transition: .25s ease;
 }
 
 .movie-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 16px 34px rgba(0,0,0,0.18);
+    box-shadow: 0 18px 32px rgba(0,0,0,.12);
 }
 
 .movie-card img {
     width: 100%;
-    display: block;
     aspect-ratio: 2/3;
     object-fit: cover;
 }
 
-/* Badge nomor */
+/* badge nomor */
 .movie-number {
     position: absolute;
     top: 10px;
     left: 10px;
     background: #ef4444;
-    color: #ffffff;
-    font-weight: 800;
-    border-radius: 8px;
     padding: 4px 10px;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
     font-size: 14px;
 }
 
-/* Hover overlay */
+/* overlay */
 .movie-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0,0,0,0.45);
+    opacity: 0;
     display: flex;
     flex-direction: column;
+    gap: 10px;
     justify-content: center;
     align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transition: 0.3s ease;
+    transition: .25s ease;
 }
 
 .movie-card:hover .movie-overlay {
     opacity: 1;
 }
 
-.movie-overlay button,
-.movie-overlay a {
-    width: 70%;
-    max-width: 200px;
-    padding: 10px 0;
+/* tombol emas */
+.overlay-btn {
+    padding: 10px 22px;
+    background: #d4af37;
     border-radius: 999px;
-    border: 2px solid #ffffff;
-    background: transparent;
-    color: #ffffff;
+    color: white;
     font-weight: 700;
-    text-align: center;
-    text-decoration: none;
+    border: none;
     font-size: 14px;
+    cursor: pointer;
+    transition: .2s ease;
 }
 
-.movie-overlay a.get-ticket {
-    background: #ef4444;
-    border-color: #ef4444;
-}
-
-/* Responsive movie grid */
-@media (max-width: 600px) {
-    .movies-grid {
-        padding: 0 20px;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
+.overlay-btn:hover {
+    background: #b8932e;
+    transform: translateY(-2px);
 }
 
 </style>
 
 <main>
-    <!-- HERO SLIDER -->
-    <section class="hero-wrapper">
-        <div class="hero-slider" id="heroSlider">
 
-            <div class="hero-slide active" style="background-image:url('<?= BASE_URL ?>/assets/uploads/tes.jpg');">
-                <div class="hero-overlay">
-                    <div class="hero-tag">Advance Ticket Sales</div>
-                    <div class="hero-title">
-                        BUY 1 GET 1<br><span>FREE TICKET</span>
-                    </div>
-                    <div class="hero-sub">
-                        Mulai pembelian tanggal 25 November 2025
-                        untuk penayangan 27 November 2025.
-                    </div>
-                    <div class="hero-cta">
-                        <a href="#movie-selection" class="hero-btn">Beli di sini!</a>
-                    </div>
-                </div>
+<!-- ==========================
+     HERO SLIDER
+========================== -->
+<section class="hero-wrapper">
+    <div class="hero-slider" id="heroSlider">
+
+        <!-- slide 1 -->
+        <div class="hero-slide active" style="background-image:url('<?= BASE_URL ?>/assets/uploads/tes.jpg');">
+            <div class="hero-overlay">
+                <h1>BUY 1 GET 1 FREE</h1>
+                <p>Promo terbatas sampai akhir bulan.</p>
+                <a href="#movie-selection" class="hero-btn">Cek Tiket</a>
             </div>
-
-            <div class="hero-slide" style="background-image:url('<?= BASE_URL ?>/assets/hero/slide2.jpg');">
-                <div class="hero-overlay">
-                    <div class="hero-tag">New Release</div>
-                    <div class="hero-title">
-                        MIDNIGHT<br><span>MYSTERY</span>
-                    </div>
-                    <div class="hero-sub">
-                        Rasakan pengalaman menegangkan di malam hari
-                        dengan format layar terbaik di kota kamu.
-                    </div>
-                    <div class="hero-cta">
-                        <a href="#movie-selection" class="hero-btn">Lihat jadwal</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="hero-slide" style="background-image:url('<?= BASE_URL ?>/assets/hero/slide3.jpg');">
-                <div class="hero-overlay">
-                    <div class="hero-tag">Family Time</div>
-                    <div class="hero-title">
-                        WEEKEND<br><span>WITH FAMILY</span>
-                    </div>
-                    <div class="hero-sub">
-                        Paket spesial tiket keluarga untuk akhir pekan.
-                        Pilih film favorit dan pesan sekarang.
-                    </div>
-                    <div class="hero-cta">
-                        <a href="#movie-selection" class="hero-btn">Pesan tiket</a>
-                    </div>
-                </div>
-            </div>
-
-            <button class="hero-nav prev" id="heroPrev">‹</button>
-            <button class="hero-nav next" id="heroNext">›</button>
         </div>
-    </section>
 
-    <!-- MOVIE SELECTION -->
-    <section id="movie-selection">
-        <h2 class="section-heading">MOVIE SELECTION</h2>
-        <div class="section-line"></div>
-
-        <div class="movies-grid">
-            <?php $no = 1; foreach ($films as $f): ?>
-                <article class="movie-card">
-                    <div class="movie-number"><?= $no++; ?></div>
-                    <img src="<?= BASE_URL . '/' . esc($f['poster']) ?>" alt="<?= esc($f['title']) ?>">
-
-                    <div class="movie-overlay">
-                        <button type="button">Watch Trailer</button>
-
-                        <a class="get-ticket"
-                           href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
-                            Get Ticket
-                        </a>
-                    </div>
-                </article>
-            <?php endforeach; ?>
+        <!-- slide 2 -->
+        <div class="hero-slide" style="background-image:url('<?= BASE_URL ?>/assets/uploads/studio.jpg');">
+            <div class="hero-overlay">
+                <h1>STUDIO PREMIERE</h1>
+                <p>Film terbaru dengan kualitas terbaik.</p>
+                <a href="#movie-selection" class="hero-btn">Lihat Film</a>
+            </div>
         </div>
-    </section>
+
+        <!-- slide 3 -->
+        <div class="hero-slide" style="background-image:url('<?= BASE_URL ?>/assets/uploads/kasir1.jpg');">
+            <div class="hero-overlay">
+                <h1>WEEKEND FUN</h1>
+                <p>Promo nonton bareng keluarga!</p>
+                <a href="#movie-selection" class="hero-btn">Pesan Tiket</a>
+            </div>
+        </div>
+
+        <button class="hero-nav prev" id="heroPrev">‹</button>
+        <button class="hero-nav next" id="heroNext">›</button>
+    </div>
+</section>
+
+<!-- ==========================
+     MOVIE LIST
+========================== -->
+<section id="movie-selection">
+
+    <h2 class="section-heading">MOVIE SELECTION</h2>
+    <div class="section-line"></div>
+
+    <div class="movies-grid">
+        <?php $no = 1; foreach ($films as $f): ?>
+        <div class="movie-card">
+
+            <div class="movie-number"><?= $no++; ?></div>
+
+            <img src="<?= BASE_URL ?>/assets/uploads/<?= esc($f['poster']) ?>" 
+                 alt="<?= esc($f['title']) ?>">
+
+            <div class="movie-overlay">
+                <a href="https://youtube.com" target="_blank" class="overlay-btn">
+                    Watch Trailer
+                </a>
+                <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>" 
+                   class="overlay-btn">
+                    Get Ticket
+                </a>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+</section>
+
 </main>
 
 <script>
-// ====== HERO SLIDER JS ======
+// Slider JS
 const slides = document.querySelectorAll('.hero-slide');
-let heroIndex = 0;
-const prevBtn = document.getElementById('heroPrev');
-const nextBtn = document.getElementById('heroNext');
+let idx = 0;
 
-function showSlide(idx) {
-    slides[heroIndex].classList.remove('active');
-    heroIndex = (idx + slides.length) % slides.length;
-    slides[heroIndex].classList.add('active');
+function show(i) {
+    slides[idx].classList.remove('active');
+    idx = (i + slides.length) % slides.length;
+    slides[idx].classList.add('active');
 }
 
-prevBtn.addEventListener('click', () => showSlide(heroIndex - 1));
-nextBtn.addEventListener('click', () => showSlide(heroIndex + 1));
+document.getElementById("heroPrev").onclick = () => show(idx - 1);
+document.getElementById("heroNext").onclick = () => show(idx + 1);
 
-setInterval(() => {
-    showSlide(heroIndex + 1);
-}, 5000);
+setInterval(() => show(idx + 1), 5000);
 </script>
 
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
