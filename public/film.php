@@ -1,4 +1,8 @@
 <?php
+// PHP LOGIC
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/helpers.php';
 
@@ -21,17 +25,30 @@ $films = $stmt->fetchAll();
 
 <style>
 /* ===================== GLOBAL ===================== */
+/* Penyesuaian Body untuk Sticky Footer */
 body {
     background: #f8fafb;
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #111827;
+    
+    /* === STICKY FOOTER FIX === */
+    min-height: 100vh; /* Minimal tinggi viewport */
+    display: flex;
+    flex-direction: column;
+}
+/* Wrapper untuk semua konten (kecuali header/footer yang di-include) */
+#content-wrapper {
+    flex: 1; /* Konten akan mengisi semua ruang yang tersisa */
+    display: flex;
+    flex-direction: column;
+    padding-top: 90px; /* Jarak untuk navbar fixed */
 }
 
 /* ===================== TITLE ===================== */
 .page-title {
     text-align: center;
-    margin: 110px 0 30px;
+    margin: 40px 0 30px; /* Sesuaikan margin atas karena ada padding-top di wrapper */
     font-size: 32px;
     font-weight: 800;
     color: #1f2937;
@@ -106,8 +123,8 @@ body {
 }
 
 /* =========================================================
-   SEARCH BAR SECTION
-   ========================================================= */
+    SEARCH BAR SECTION
+    ========================================================= */
 .search-container {
     max-width: 600px;
     margin: 0 auto 40px;
@@ -188,53 +205,55 @@ body {
 }
 </style>
 
-<h2 class="page-title">Daftar Film</h2>
+<div id="content-wrapper">
 
-<!-- SEARCH BAR -->
-<div class="search-container">
-    <form method="GET" action="">
-        <input type="text" name="search" placeholder="Cari film berdasarkan judul..." value="<?= esc($search) ?>" class="search-input">
-        <button type="submit" class="search-btn">Cari</button>
-        <?php if (!empty($search)): ?>
-            <a href="<?= BASE_URL ?>/film.php" class="clear-search">Hapus Pencarian</a>
-        <?php endif; ?>
-    </form>
-</div>
+    <h2 class="page-title">Daftar Film</h2>
 
-<div class="film-list">
+    <div class="search-container">
+        <form method="GET" action="">
+            <input type="text" name="search" placeholder="Cari film berdasarkan judul..." value="<?= esc($search) ?>" class="search-input">
+            <button type="submit" class="search-btn">Cari</button>
+            <?php if (!empty($search)): ?>
+                <a href="<?= BASE_URL ?>/film.php" class="clear-search">Hapus Pencarian</a>
+            <?php endif; ?>
+        </form>
+    </div>
 
-<?php if (count($films) == 0): ?>
-    <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 18px; padding: 40px;">
-        <?php if (!empty($search)): ?>
-            Tidak ada film yang ditemukan untuk pencarian "<?= esc($search) ?>".
-        <?php else: ?>
-            Belum ada film tersedia.
-        <?php endif; ?>
-    </p>
-<?php else: ?>
-    <?php foreach($films as $f): ?>
-        <div class="film-card">
-            <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
+    <div class="film-list">
 
-                <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
-                     alt="<?= esc($f['title']) ?>" 
-                     class="poster">
+    <?php if (count($films) == 0): ?>
+        <p style="grid-column: 1 / -1; text-align: center; color: #6b7280; font-size: 18px; padding: 40px;">
+            <?php if (!empty($search)): ?>
+                Tidak ada film yang ditemukan untuk pencarian "<?= esc($search) ?>".
+            <?php else: ?>
+                Belum ada film tersedia.
+            <?php endif; ?>
+        </p>
+    <?php else: ?>
+        <?php foreach($films as $f): ?>
+            <div class="film-card">
+                <a href="<?= BASE_URL ?>/film_detail.php?id=<?= $f['id'] ?>">
 
-                <div class="film-body">
+                    <img src="<?= BASE_URL ?>/<?= esc($f['poster']) ?>" 
+                        alt="<?= esc($f['title']) ?>" 
+                        class="poster">
 
-                    <span class="film-badge">Get Ticket</span>
+                    <div class="film-body">
 
-                    <div class="film-title"><?= esc($f['title']) ?></div>
+                        <span class="film-badge">Get Ticket</span>
 
-                    <div class="film-sub">
-                        <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                        <div class="film-title"><?= esc($f['title']) ?></div>
+
+                        <div class="film-sub">
+                            <?= esc($f['genre']) ?> • <?= esc($f['duration']) ?> menit
+                        </div>
                     </div>
-                </div>
-            </a>
-        </div>
-    <?php endforeach; ?>
-<?php endif; ?>
+                </a>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    </div>
 
 </div>
-
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
