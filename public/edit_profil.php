@@ -26,10 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <style>
     /* ===================== TEMA TERANG (LIGHT THEME) ===================== */
     body {
+        margin: 0;
+        padding: 0;
         background: #f4f6f8; 
         font-family: "Poppins", sans-serif;
         color: #1f2937; 
-        padding-top: 90px;
+        padding-top: 118px;
     }
 
     .edit-container {
