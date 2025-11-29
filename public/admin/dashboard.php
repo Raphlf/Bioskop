@@ -88,7 +88,13 @@ canvas { max-height:250px; }
             <li><a href="jadwal_manage.php">Kelola Jadwal</a></li>
             <li><a href="users_manage.php">Kelola User</a></li>
             <li><a href="exports.php">Export Data</a></li>
-            <li><a href="../logout.php" class="logout">Logout</a></li>
+            <li>
+    <a href="../logout.php" 
+       class="logout" 
+       onclick="return confirm('Apakah Anda yakin ingin keluar (Logout)?')">
+        Logout
+    </a>
+</li>
         </ul>
     </aside>
 
