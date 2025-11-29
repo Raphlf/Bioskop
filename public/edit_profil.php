@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../src/db.php';
 require_once __DIR__ . '/../src/auth.php';
-require_login();
+require_login(); 
 
 $user = $_SESSION['user'];
 $message = '';
@@ -14,7 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $stmt = $pdo->prepare("UPDATE users SET name = ? WHERE id = ?");
         $stmt->execute([$name, $user['id']]);
-        $_SESSION['user']['name'] = $name;
+        
+        $_SESSION['user']['name'] = $name; 
         $message = "Profil berhasil diperbarui!";
     }
 }
@@ -23,24 +24,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include __DIR__ . '/../src/templates/header.php'; ?>
 
 <style>
+    /* ===================== TEMA TERANG (LIGHT THEME) ===================== */
     body {
-        background: #0d1b2a;
+        background: #f4f6f8; 
         font-family: "Poppins", sans-serif;
-        color: #e8e8e8;
+        color: #1f2937; 
+        padding-top: 90px;
     }
 
     .edit-container {
         max-width: 480px;
         margin: 40px auto;
-        padding: 25px;
-        background: #141426;
+        padding: 30px;
+        background: #ffffff; 
         border-radius: 12px;
-        box-shadow: 0 0 20px rgba(122, 0, 255, 0.25);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08); 
+        border: 1px solid #e5e7eb;
     }
 
     .edit-container h2 {
         text-align: center;
-        color: #c084ff;
+        color: #0f172a; 
         margin-bottom: 25px;
     }
 
@@ -48,61 +52,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         display: block;
         margin-bottom: 6px;
         font-size: 14px;
-        color: #cfcfcf;
+        color: #4b5563; 
     }
 
     input {
         width: 100%;
-        padding: 10px;
-        background: #1e1e32;
-        border: 1px solid #3b3b5c;
+        padding: 12px;
+        background: #f9fafb; 
+        border: 1px solid #d1d5db;
         border-radius: 8px;
-        color: white;
+        color: #1f2937;
         margin-bottom: 15px;
+        transition: border-color 0.2s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #6366f1; 
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
 
     input:disabled {
-        opacity: 0.6;
+        background: #f3f4f6;
+        opacity: 1;
     }
 
-    button {
-        width: 100%;
-        padding: 12px;
-        background: linear-gradient(90deg, #7e22ce, #a855f7);
+    /* CONTAINER BARU UNTUK DUA TOMBOL */
+    .button-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    /* STYLING UMUM UNTUK KEDUA TOMBOL */
+    .button-actions button,
+    .button-actions .btn-link {
+        padding: 12px 20px; /* Padding yang cukup */
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        color: white;
         font-weight: bold;
         letter-spacing: 0.5px;
         transition: 0.2s;
+        text-align: center;
+        width: 50%; /* Membuat tombol berbagi lebar 50% */
     }
 
-    button:hover {
-        background: linear-gradient(90deg, #a855f7, #7e22ce);
-        transform: scale(1.02);
+    /* TOMBOL SIMPAN (PRIMARY) */
+    .button-actions button[type="submit"] {
+        background: #6366f1; 
+        color: white;
+    }
+
+    .button-actions button[type="submit"]:hover {
+        background: #4f46e5;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    /* TOMBOL KEMBALI (SECONDARY/LINK) */
+    .button-actions .btn-link {
+        /* Menggunakan warna background terang dengan border */
+        background: #ffffff;
+        color: #4b5563;
+        border: 1px solid #d1d5db;
+        text-decoration: none;
+    }
+    
+    .button-actions .btn-link:hover {
+        background: #f3f4f6;
+        color: #1f2937;
     }
 
     .message {
-        padding: 10px;
-        background: #1e1e32;
-        border-left: 4px solid #a855f7;
+        padding: 12px;
+        background: #ecfdf5; 
+        border-left: 4px solid #10b981; 
         border-radius: 5px;
-        margin-bottom: 15px;
-        color: #d3b4ff;
+        margin-bottom: 20px;
+        color: #065f46; 
+        font-weight: 500;
         text-align: center;
     }
+    
+    <?php if ($message && strpos($message, 'kosong') !== false): ?>
+    .message {
+        background: #fee2e2;
+        border-left-color: #ef4444;
+        color: #991b1b;
+    }
+    <?php endif; ?>
 
+    /* Hapus styling back-btn lama */
     .back-btn {
-        display: block;
-        margin-top: 15px;
-        color: #b37bff;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    .back-btn:hover {
-        text-decoration: underline;
+        display: none;
     }
 </style>
 
@@ -119,11 +162,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label>Email</label>
         <input type="email" value="<?= htmlspecialchars($user['email']) ?>" disabled>
-
-        <button type="submit">Simpan Perubahan</button>
+        
+        <div class="button-actions">
+            <button type="submit">Simpan Perubahan</button>
+            
+            <a href="profil.php" class="btn-link">← Kembali</a>
+        </div>
     </form>
 
-    <a href="profil.php" class="back-btn">Kembali ke Profil</a>
-</div>
+    </div>
 
 <?php include __DIR__ . '/../src/templates/footer.php'; ?>
